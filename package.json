@@ -2,5 +2,11 @@
   "name": "routix",
   "version": "0.0.0",
   "main": "index.js",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@rixo/eslint-config": "0.8",
+    "esm": "^3.2.25",
+    "zoar": "^0.0.3",
+    "zorax": "^0.0.8"
+  }
 }
