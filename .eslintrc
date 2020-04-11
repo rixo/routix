@@ -1,5 +1,12 @@
 extends:
-  - '@rixo'
+  - '@rixo/svelte'
 
-env:
-  node: true
+# settings:
+#   svelte3/enabled: true
+#   svelte3/ignore-warnings: false
+#   svelte3/lint-template: false
+
+overrides:
+  - files: ["**/rollup.config.js", "src/**"]
+    env:
+      node: true

@@ -5,6 +5,8 @@ import livereload from 'rollup-plugin-livereload'
 import { terser } from 'rollup-plugin-terser'
 // import hmr, { autoCreate } from 'rollup-plugin-hot'
 import hmr from 'rollup-plugin-hot'
+import { mdsvex } from 'mdsvex'
+import routix from 'routix/rollup'
 
 // Set this to true to pass the --single flag to sirv (this serves your
 // index.html for any unmatched route, which is a requirement for SPA
@@ -14,7 +16,7 @@ import hmr from 'rollup-plugin-hot'
 // have to add the --history-api-fallback yourself in your package.json
 // scripts (see: https://github.com/PepsRyuu/nollup/#nollup-options)
 //
-const spa = false
+const spa = true
 
 // NOTE The NOLLUP env variable is picked by various HMR plugins to switch
 // in compat mode. You should not change its name (and set the env variable
@@ -37,6 +39,8 @@ export default {
     file: 'public/build/bundle.js',
   },
   plugins: [
+    routix(),
+
     svelte({
       // Enable run-time checks when not in production
       dev: !production,
@@ -47,6 +51,12 @@ export default {
       css: css => {
         css.write('public/build/bundle.css')
       },
+      extensions: ['.svelte', '.svench', '.svx'],
+      preprocess: [
+        mdsvex({
+          extension: '.svx',
+        }),
+      ],
       hot: hot && {
         // Optimistic will try to recover from runtime
         // errors during component init

@@ -1,33 +1,73 @@
 <script>
-  export let name
+  import { onDestroy } from 'svelte'
+  import routes from 'routix/routes'
+  import tree from 'routix/tree'
+  import navaid from 'navaid'
+  import Menu from './Menu.svelte'
+
+  const router = navaid('/', uri => {
+    console.log('__fallback', uri)
+  })
+
+  let currentRoute
+  let error
+  let cmp
+
+  const setRoute = route => async () => {
+    if (!route.component) {
+      console.log(route)
+      return
+    }
+    currentRoute = route
+    try {
+      const _cmp = await route.component()
+      if (currentRoute !== route) return
+      error = null
+      cmp = _cmp
+    } catch (err) {
+      if (currentRoute !== route) return
+      error = err
+    }
+  }
+
+  for (const route of routes) {
+    router.on(route.path, setRoute(route))
+  }
+
+  router.listen()
+
+  onDestroy(router.unlisten)
 </script>
 
+<!-- <pre>{JSON.stringify(routes, false, 2)}</pre> -->
+<!-- <pre>{JSON.stringify(tree, false, 2)}</pre> -->
+
+<Menu items={tree.children} format={router.format} />
+<!-- <ul>
+  {#each routes.sort((a, b) => a.sortKey.localeCompare(b.sortKey)) as route}
+    <li>
+      <a href={'/' + route.path}>{route.title}</a>
+    </li>
+  {/each}
+</ul> -->
+
 <main>
-  <h1>Hello {name}!</h1>
-  <p>
-    Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to
-    learn how to build Svelte apps.
-  </p>
+  {#if error}
+    <pre>{error.stack || error}</pre>
+  {:else}
+    <svelte:component this={cmp} />
+  {/if}
 </main>
 
 <style>
+  ul {
+    float: left;
+  }
+
   main {
-    text-align: center;
-    padding: 1em;
-    max-width: 240px;
-    margin: 0 auto;
-  }
-
-  h1 {
-    color: #ff3e00;
-    text-transform: uppercase;
-    font-size: 4em;
-    font-weight: 100;
-  }
-
-  @media (min-width: 640px) {
-    main {
-      max-width: none;
-    }
+    border: 1px solid hotpink;
+    padding: 1rem;
+    overflow: auto;
+    margin: 1rem;
   }
 </style>
