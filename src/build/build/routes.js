@@ -29,9 +29,8 @@ const _dir = ({ path, segment, sortKey, title, children }) => `
 
 const _generate = (files, dirs) =>
   [
-    `const d = [${dirs.map(_dir).join(',')}\n]`,
-    `const f = [${files.map(_file).join(',')}\n]`,
-    'export { d as dirs, f as files }',
+    `const d /* dirs */ = [${dirs.map(_dir).join(',')}\n]`,
+    `const f /* files */ = [${files.map(_file).join(',')}\n]`,
   ]
     .filter(x => x != null)
     .join('\n\n')

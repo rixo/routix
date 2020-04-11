@@ -39,7 +39,10 @@ export default {
     file: 'public/build/bundle.js',
   },
   plugins: [
-    routix(),
+    routix({
+      dir: '../../svench.routix/example/src',
+      write: { routes: true, tree: true },
+    }),
 
     svelte({
       // Enable run-time checks when not in production

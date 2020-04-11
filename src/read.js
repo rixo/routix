@@ -8,13 +8,12 @@ export default ({ dir, extensions, watch = false }, build) => {
 
   const watcher = new CheapWatch({ dir, watch, filter })
 
-  watcher
-    .init()
-    .then(pipe(() => watcher.paths, map(build.add)))
-    .catch(err => {
-      // eslint-disable-next-line no-console
-      console.error(err)
-    })
+  // eslint-disable-next-line no-console
+  console.info(
+    `[routix] Watching ${dir}/**/*.(${extensions
+      .map(x => x.slice(1))
+      .join('|')})`
+  )
 
   if (watch) {
     watcher.on('+', ({ path, stats, isNew }) => {
@@ -27,4 +26,9 @@ export default ({ dir, extensions, watch = false }, build) => {
 
     watcher.on('-', ({ path, stats }) => build.remove([path, stats]))
   }
+
+  return watcher
+    .init()
+    .then(pipe(() => watcher.paths, map(build.add)))
+    .then(build.start)
 }

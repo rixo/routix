@@ -2,15 +2,18 @@
   "name": "routix",
   "version": "0.0.1-0",
   "license": "ISC",
-  "main": "index.js",
   "devDependencies": {
     "@rixo/eslint-config-svelte": "^0.8.1",
+    "@rollup/plugin-node-resolve": "^7.1.1",
     "esm": "^3.2.25",
+    "rollup": "^2.6.0",
     "svelte": "^3.20.1",
     "zoar": "^0.0.3",
     "zorax": "^0.0.8"
   },
   "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
     "test": "zoar"
   }
 }
