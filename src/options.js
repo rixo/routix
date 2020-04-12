@@ -14,13 +14,13 @@ export const parseOptions = ({
   extensions = [],
   write,
   watchDelay = 20,
-  transform = identity,
+  parse = identity,
   leadingSlash = false,
 } = {}) => ({
   watchDelay,
   dir: dir && path.resolve(dir),
   extensions: parseExtensions(extensions),
-  transform,
+  parse,
   leadingSlash,
   write: {
     routes:

@@ -2,7 +2,7 @@ import * as path from 'path'
 import { identity } from '@/util'
 
 const parseFile = options => ([relative, stats]) => {
-  const { dir, extensions, leadingSlash, transform = identity } = options
+  const { dir, extensions, leadingSlash, parse = identity } = options
 
   const item = {
     relative,
@@ -23,8 +23,8 @@ const parseFile = options => ([relative, stats]) => {
     item.path = '/' + item.path
   }
 
-  // transform is allowed to either return a new object, or mutate
-  return transform(item, options) || item
+  // user parse is allowed to either return a new object, or mutate
+  return parse(item, options) || item
 }
 
 export default parseFile
