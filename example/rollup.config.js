@@ -42,6 +42,7 @@ export default {
     routix({
       dir: '../../svench.routix/example/src',
       write: { routes: true, tree: true },
+      extensions: ['.svench', '.svench.svx', '.svench.svelte'],
     }),
 
     svelte({

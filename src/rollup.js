@@ -1,52 +1,67 @@
 import * as path from 'path'
-import read from '@/read'
+import reader from '@/read'
 import builder from '@/build'
+import { pipe } from '@/util'
 
 const defaultRoutesPath = path.resolve(__dirname, './routes.js')
 const defaultTreePath = path.resolve(__dirname, './tree.js')
 
 const wait = delay => new Promise(resolve => setTimeout(resolve, delay))
 
-const parseOptions = fn => ({
-  dir = 'src',
-  extensions = ['.svench', '.svench.svelte'],
+const parseExtensions = (extensions = []) => {
+  if (!extensions) return extensions
+  return extensions.map(ext => (!ext.startsWith('.') ? '.' + ext : ext))
+}
+
+const parseOptions = ({
+  dir,
+  extensions = [],
   write,
   watchDelay = 20,
-} = {}) =>
-  fn({
-    dir: dir && path.resolve(dir),
-    extensions,
-    watchDelay,
-    write: {
-      routes:
-        !write ||
-        write === true ||
-        !write.hasOwnProperty('routes') ||
-        write.routes === true
-          ? defaultRoutesPath
-          : path.resolve(write.routes),
-      tree:
-        !write ||
-        write === true ||
-        !write.hasOwnProperty('tree') ||
-        write.tree === true
-          ? defaultTreePath
-          : path.resolve(write.tree),
-    },
-  })
+} = {}) => ({
+  dir: dir && path.resolve(dir),
+  extensions: parseExtensions(extensions),
+  watchDelay,
+  write: {
+    routes:
+      !write ||
+      write === true ||
+      !write.hasOwnProperty('routes') ||
+      write.routes === true
+        ? defaultRoutesPath
+        : path.resolve(write.routes),
+    tree:
+      !write ||
+      write === true ||
+      !write.hasOwnProperty('tree') ||
+      write.tree === true
+        ? defaultTreePath
+        : path.resolve(write.tree),
+  },
+})
 
-export default parseOptions(options => {
+let read
+
+const createPlugin = options => {
   const { watchDelay, write } = options
 
   const build = builder(options)
 
-  const readyPromise = read(
+  if (read) {
+    // eslint-disable-next-line no-console
+    console.info('[routix] Closing previous watchers')
+    read.close()
+  }
+
+  read = reader(
     {
       watch: !!process.env.ROLLUP_WATCH,
       ...options,
     },
     build
-  ).catch(err => {
+  )
+
+  const readyPromise = read.init().catch(err => {
     // eslint-disable-next-line no-console
     console.error('[routix] Failed to start', err)
   })
@@ -122,4 +137,6 @@ export default parseOptions(options => {
       }
     },
   }
-})
+}
+
+export default pipe(parseOptions, createPlugin)

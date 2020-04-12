@@ -27,8 +27,13 @@ export default ({ dir, extensions, watch = false }, build) => {
     watcher.on('-', ({ path, stats }) => build.remove([path, stats]))
   }
 
-  return watcher
-    .init()
-    .then(pipe(() => watcher.paths, map(build.add)))
-    .then(build.start)
+  const init = () =>
+    watcher
+      .init()
+      .then(pipe(() => watcher.paths, map(build.add)))
+      .then(build.start)
+
+  const close = () => watcher.close()
+
+  return { init, close }
 }
