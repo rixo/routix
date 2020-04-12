@@ -15,9 +15,9 @@ const getNode = (from, steps) => {
   return node
 }
 
-const _tree = children =>
+const _tree = rootPath => children =>
   `export default {
-  path: '',
+  path: ${JSON.stringify(rootPath)},
   root: true,
   children: ${
     children.length === 0
@@ -69,7 +69,7 @@ const unfolder = options => {
 }
 
 export default options => {
-  const { keepEmpty } = options
+  const { keepEmpty, leadingSlash } = options
 
   const root = {
     [FILE]: { root: true, path: '' },
@@ -101,7 +101,7 @@ export default options => {
 
   const filter = keepEmpty ? identity : x => x.filter(notEmpty)
 
-  const _generate = pipe(filter, _tree)
+  const _generate = pipe(filter, _tree(leadingSlash ? '/' : ''))
 
   const generate = () => _generate(root[FILE].children)
 
