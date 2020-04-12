@@ -34,6 +34,10 @@
     router.on(route.path, setRoute(route))
   }
 
+  router.on('whatever', (...args) => {
+    console.log(args)
+  })
+
   router.listen()
 
   onDestroy(router.unlisten)

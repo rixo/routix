@@ -1,8 +1,8 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import parser from '@/parse'
 import Tree from './build/tree'
 import Routes from './build/routes'
-import parser from './parse'
 
 const now = Date.now
 
