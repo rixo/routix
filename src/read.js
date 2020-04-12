@@ -10,9 +10,9 @@ export default ({ dir, extensions, watch = false }, build) => {
 
   // eslint-disable-next-line no-console
   console.info(
-    `[routix] Watching ${dir}/**/*.(${extensions
-      .map(x => x.slice(1))
-      .join('|')})`
+    `[routix] ${
+      watch ? 'Watching' : 'Reading'
+    } ${dir}/**/*.(${extensions.map(x => x.slice(1)).join('|')})`
   )
 
   if (watch) {
