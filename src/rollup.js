@@ -1,44 +1,9 @@
-import * as path from 'path'
 import reader from '@/read'
 import builder from '@/build'
 import { pipe } from '@/util'
-
-const defaultRoutesPath = path.resolve(__dirname, './routes.js')
-const defaultTreePath = path.resolve(__dirname, './tree.js')
+import { parseOptions } from '@/options'
 
 const wait = delay => new Promise(resolve => setTimeout(resolve, delay))
-
-const parseExtensions = (extensions = []) => {
-  if (!extensions) return extensions
-  return extensions.map(ext => (!ext.startsWith('.') ? '.' + ext : ext))
-}
-
-const parseOptions = ({
-  dir,
-  extensions = [],
-  write,
-  watchDelay = 20,
-} = {}) => ({
-  dir: dir && path.resolve(dir),
-  extensions: parseExtensions(extensions),
-  watchDelay,
-  write: {
-    routes:
-      !write ||
-      write === true ||
-      !write.hasOwnProperty('routes') ||
-      write.routes === true
-        ? defaultRoutesPath
-        : path.resolve(write.routes),
-    tree:
-      !write ||
-      write === true ||
-      !write.hasOwnProperty('tree') ||
-      write.tree === true
-        ? defaultTreePath
-        : path.resolve(write.tree),
-  },
-})
 
 let read
 

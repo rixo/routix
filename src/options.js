@@ -1,0 +1,39 @@
+import * as path from 'path'
+import { identity } from '@/util'
+
+const defaultRoutesPath = path.resolve(__dirname, './routes.js')
+const defaultTreePath = path.resolve(__dirname, './tree.js')
+
+const parseExtensions = (extensions = []) => {
+  if (!extensions) return extensions
+  return extensions.map(ext => (!ext.startsWith('.') ? '.' + ext : ext))
+}
+
+export const parseOptions = ({
+  dir,
+  extensions = [],
+  write,
+  watchDelay = 20,
+  transform = identity,
+} = {}) => ({
+  watchDelay,
+  dir: dir && path.resolve(dir),
+  extensions: parseExtensions(extensions),
+  transform,
+  write: {
+    routes:
+      !write ||
+      write === true ||
+      !write.hasOwnProperty('routes') ||
+      write.routes === true
+        ? defaultRoutesPath
+        : path.resolve(write.routes),
+    tree:
+      !write ||
+      write === true ||
+      !write.hasOwnProperty('tree') ||
+      write.tree === true
+        ? defaultTreePath
+        : path.resolve(write.tree),
+  },
+})
