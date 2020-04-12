@@ -104,13 +104,14 @@ export default options => {
     })
   }
 
-  const start = () => {
-    started = true
-    invalidate()
-  }
-
   const input = () => {
     if (startTime === null) startTime = now()
+  }
+
+  const start = () => {
+    input()
+    started = true
+    invalidate()
   }
 
   const _parse = pathStats => {
