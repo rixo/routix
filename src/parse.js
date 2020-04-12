@@ -23,8 +23,7 @@ const parseFile = options => ([relative, stats]) => {
     item.path = '/' + item.path
   }
 
-  // user parse is allowed to either return a new object, or mutate
-  return parse(item, options) || item
+  return parse(item, options)
 }
 
 export default parseFile

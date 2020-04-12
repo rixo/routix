@@ -20,6 +20,19 @@ export const parseOptions = ({
   watchDelay,
   dir: dir && path.resolve(dir),
   extensions: parseExtensions(extensions),
+  /**
+   * Files:
+   *
+   *     ({ isFile: true, absolute, relative, path, extension }) => item | undefined
+   *
+   * Directories:
+   *
+   *     ({ isFile: false, absolute, relative, path }) => item | undefined
+   *
+   * Virtual directories (when building tree from modified paths):
+   *
+   *     ({ isVirtual: true, path }) => item | undefined
+   */
   parse,
   leadingSlash,
   write: {

@@ -1,4 +1,3 @@
-import * as path from 'path'
 import { noop } from '@/util'
 
 import { _ref } from './util'
@@ -28,34 +27,40 @@ const _tree = file =>
 }
 `
 
-const unfold = (node, _path, virtuals) => {
-  const children = Object.entries(node)
+const unfolder = options => {
+  const { parse } = options
 
-  if (!node[FILE]) {
-    const p = _path.slice(0, -1)
-    const segment = path.basename(p)
-    const file = {
-      isVirtual: true,
-      isFile: false,
-      extension: '',
-      path: p,
-      sortKey: segment,
-      segment,
-      title: segment.replace(/_+/g, ' '),
+  const unfold = (node, _path, virtuals) => {
+    const children = Object.entries(node)
+
+    if (!node[FILE]) {
+      const p = _path.slice(0, -1)
+      const file = parse(
+        {
+          isVirtual: true,
+          isFile: false,
+          path: p,
+        },
+        options
+      )
+      virtuals.push(file)
+      node[FILE] = file
     }
-    virtuals.push(file)
-    node[FILE] = file
+
+    children.forEach(([seg, x]) => unfold(x, _path + seg + '/', virtuals))
+
+    node[FILE].children = children.map(([, x]) => x[FILE])
   }
 
-  children.forEach(([seg, x]) => unfold(x, _path + seg + '/', virtuals))
-
-  node[FILE].children = children.map(([, x]) => x[FILE])
+  return unfold
 }
 
-export default () => {
+export default options => {
   const root = {
     [FILE]: { root: true, path: '' },
   }
+
+  const unfold = unfolder(options)
 
   const add = file => {
     const steps = file.path.split('/')
