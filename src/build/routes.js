@@ -5,21 +5,22 @@ import { _ref } from './util'
 
 const _ = JSON.stringify
 
-const _file = ({ absolute, path, segment, sortKey, title }) => `
+const _props = (props = {}) =>
+  Object.entries(props)
+    .map(([prop, value]) => `    ${_(prop)}: ${_(value)}`)
+    .join(',\n')
+
+const _file = (props, { absolute, path }) => `
   {
-    path: ${_(path)},
-    import: () => import(${_(absolute)}).then(m => m.default),
-    segment: ${_(segment)},
-    sortKey: ${_(sortKey)},
-    title: ${_(title)},
+    "path": ${_(path)},
+    "import": () => import(${_(absolute)}).then(m => m.default),
+${_props(props)}
   }`
 
-const _dir = ({ path, segment, sortKey, title, children }) => `
+const _dir = (props, { path, children }) => `
   {
-    path: ${_(path)},
-    segment: ${_(segment)},
-    sortKey: ${_(sortKey)},
-    title: ${_(title)},${children &&
+    "path": ${_(path)},
+${_props(props)},${children &&
   `
     get children() {
       delete this.children
@@ -27,17 +28,19 @@ const _dir = ({ path, segment, sortKey, title, children }) => `
     }`}
   }`
 
-const _generate = (files, dirs) =>
+const _generate = (format, files, dirs) =>
   [
-    `const d /* dirs */ = [${dirs.map(_dir).join(',')}\n]`,
-    `const f /* files */ = [${files.map(_file).join(',')}\n]`,
+    `const d /* dirs */ = [${dirs.map(x => _dir(format(x), x)).join(',')}\n]`,
+    `const f /* files */ = [${files
+      .map(x => _file(format(x), x))
+      .join(',')}\n]`,
   ]
     .filter(x => x != null)
     .join('\n\n')
 
 const addIndex = (x, i) => (x.i = i)
 
-export default (/* options */) => {
+export default ({ format }) => {
   const routes = {}
 
   const add = file => {
@@ -54,7 +57,7 @@ export default (/* options */) => {
     dirs.push(...virtuals)
     files.forEach(addIndex)
     dirs.forEach(addIndex)
-    return _generate(files, dirs)
+    return _generate(format, files, dirs)
   }
 
   return {

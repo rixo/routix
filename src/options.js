@@ -9,17 +9,14 @@ const parseExtensions = (extensions = []) => {
   return extensions.map(ext => (!ext.startsWith('.') ? '.' + ext : ext))
 }
 
+const emptyObject = {}
+
 export const parseOptions = ({
   dir,
   extensions = [],
   write,
   watchDelay = 20,
-  parse = identity,
   leadingSlash = false,
-} = {}) => ({
-  watchDelay,
-  dir: dir && path.resolve(dir),
-  extensions: parseExtensions(extensions),
   /**
    * Files:
    *
@@ -33,8 +30,18 @@ export const parseOptions = ({
    *
    *     ({ isVirtual: true, path }) => item | undefined
    */
-  parse,
+  parse = identity,
+  /**
+   * item => props
+   */
+  format = () => emptyObject,
+} = {}) => ({
+  watchDelay,
+  dir: dir && path.resolve(dir),
+  extensions: parseExtensions(extensions),
   leadingSlash,
+  parse,
+  format,
   write: {
     routes:
       !write ||
