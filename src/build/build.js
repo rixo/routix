@@ -4,6 +4,8 @@ import Tree from './build/tree'
 import Routes from './build/routes'
 import parser from './parse'
 
+const now = Date.now
+
 export default options => {
   const {
     buildDebounce = 50,
@@ -22,6 +24,7 @@ export default options => {
   let scheduled = false
   let running = false
   let promise = Promise.resolve()
+  let startTime = null
 
   const isIdle = () => started && timeout === null && !scheduled && !running
 
@@ -31,8 +34,10 @@ export default options => {
     .join(', ')
 
   const logBuildSuccess = () => {
+    const duration = now() - startTime
+    startTime = null
     // eslint-disable-next-line no-console
-    console.info(`[routix] Written: ${targetsDisplayNames}`)
+    console.info(`[routix] Written: ${targetsDisplayNames} (${duration}ms)`)
   }
 
   const build = () => {
@@ -95,19 +100,26 @@ export default options => {
     invalidate()
   }
 
+  const input = () => {
+    if (startTime === null) startTime = now()
+  }
+
   const add = pathStats => {
+    input()
     const file = parse(pathStats)
     builders.forEach(x => x.add(file))
     invalidate()
   }
 
   const update = pathStats => {
+    input()
     const file = parse(pathStats)
     builders.forEach(x => x.update(file))
     invalidate()
   }
 
   const remove = ([path]) => {
+    input()
     builders.forEach(x => x.delete(path))
     invalidate()
   }
@@ -120,9 +132,7 @@ export default options => {
   let changeListeners = []
 
   const notifyChange = () => {
-    for (const f of changeListeners) {
-      f()
-    }
+    for (const f of changeListeners) f()
     changeListeners = []
   }
 
