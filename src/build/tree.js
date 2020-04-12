@@ -1,5 +1,5 @@
-import { noop } from '@/util'
-
+import { noop, pipe, identity } from '@/util'
+import { notEmpty } from '@/model'
 import { _ref } from './util'
 
 const FILE = Symbol('routix.tree.FILE')
@@ -15,14 +15,14 @@ const getNode = (from, steps) => {
   return node
 }
 
-const _tree = file =>
+const _tree = children =>
   `export default {
   path: '',
   root: true,
   children: ${
-    file.children.length === 0
+    children.length === 0
       ? '[]'
-      : `[\n    ${file.children.map(_ref).join(',\n    ')}\n  ]`
+      : `[\n    ${children.map(_ref).join(',\n    ')}\n  ]`
   }
 }
 `
@@ -47,15 +47,30 @@ const unfolder = options => {
       node[FILE] = file
     }
 
-    children.forEach(([seg, x]) => unfold(x, _path + seg + '/', virtuals))
+    const file = node[FILE]
 
-    node[FILE].children = children.map(([, x]) => x[FILE])
+    let hasFiles = false
+    for (const [seg, x] of children) {
+      const hasChildrenFiles = unfold(x, _path + seg + '/', virtuals)
+      hasFiles = hasFiles || hasChildrenFiles
+    }
+
+    file.children = children.map(([, x]) => x[FILE])
+
+    if (!file.isFile && !hasFiles) {
+      file.isEmpty = true
+      return false
+    }
+
+    return true
   }
 
   return unfold
 }
 
 export default options => {
+  const { keepEmpty } = options
+
   const root = {
     [FILE]: { root: true, path: '' },
   }
@@ -84,7 +99,11 @@ export default options => {
     return { virtuals }
   }
 
-  const generate = () => _tree(root[FILE])
+  const filter = keepEmpty ? identity : x => x.filter(notEmpty)
+
+  const _generate = pipe(filter, _tree)
+
+  const generate = () => _generate(root[FILE].children)
 
   return {
     root,

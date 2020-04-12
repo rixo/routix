@@ -14,9 +14,28 @@ const emptyObject = {}
 export const parseOptions = ({
   dir,
   extensions = [],
+  /**
+   *     write: true|false
+   *
+   *     write: { routes: true|false, tree: true|false }
+   *
+   *     write: { routes: '/path/to/file', tree: '' }
+   */
   write,
+  /**
+   * {int|falsy} Defer Rollup build by this duration (ms); this is needed to
+   * ensure that our file watcher has the time to pick file changes (and then
+   * holds Rollup until routes.js is generated)
+   */
   watchDelay = 20,
+  /**
+   * {bool} Prepend paths with a leading slash
+   */
   leadingSlash = false,
+  /**
+   * {bool} Keep empty directories
+   */
+  keepEmpty = false,
   /**
    * Files:
    *
@@ -40,6 +59,7 @@ export const parseOptions = ({
   dir: dir && path.resolve(dir),
   extensions: parseExtensions(extensions),
   leadingSlash,
+  keepEmpty,
   parse,
   format,
   write: {

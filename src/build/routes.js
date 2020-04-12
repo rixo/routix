@@ -1,5 +1,5 @@
-import { split } from '@/util'
-import { isFile } from '@/model'
+import { split, identity } from '@/util'
+import { isFile, notEmpty } from '@/model'
 
 import { _ref } from './util'
 
@@ -40,7 +40,7 @@ const _generate = (format, files, dirs) =>
 
 const addIndex = (x, i) => (x.i = i)
 
-export default ({ format }) => {
+export default ({ format, keepEmpty }) => {
   const routes = {}
 
   const add = file => {
@@ -52,9 +52,11 @@ export default ({ format }) => {
     delete routes[path]
   }
 
+  const filter = keepEmpty ? identity : x => x.filter(notEmpty)
+
   const generate = ({ virtuals } = {}) => {
-    const [files, dirs] = split(isFile, Object.values(routes))
-    dirs.push(...virtuals)
+    const [files, dirs] = split(isFile, filter(Object.values(routes)))
+    dirs.push(...filter(virtuals))
     files.forEach(addIndex)
     dirs.forEach(addIndex)
     return _generate(format, files, dirs)
