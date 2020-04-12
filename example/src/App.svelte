@@ -14,13 +14,13 @@
   let cmp
 
   const setRoute = route => async () => {
-    if (!route.component) {
+    if (!route.import) {
       console.log(route)
       return
     }
     currentRoute = route
     try {
-      const _cmp = await route.component()
+      const _cmp = await route.import()
       if (currentRoute !== route) return
       error = null
       cmp = _cmp

@@ -8,7 +8,7 @@ const _ = JSON.stringify
 const _file = ({ absolute, path, segment, sortKey, title }) => `
   {
     path: ${_(path)},
-    component: () => import(${_(absolute)}).then(m => m.default),
+    import: () => import(${_(absolute)}).then(m => m.default),
     segment: ${_(segment)},
     sortKey: ${_(sortKey)},
     title: ${_(title)},
