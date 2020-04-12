@@ -64,7 +64,6 @@ export default options => {
 
   const add = file => {
     const steps = file.path.split('/')
-    // const leaf = steps.pop()
     const node = getNode(root, steps)
     if (node[FILE] && node[FILE].isFile) {
       throw new Error(`File node conflics: ${file.path}`)
@@ -72,8 +71,11 @@ export default options => {
     node[FILE] = file
   }
 
-  const remove = path => {
-    // DEBUG DEBUG DEBUG
+  const remove = file => {
+    const steps = file.path.split('/')
+    const leaf = steps.pop()
+    const node = getNode(root, steps)
+    delete node[leaf]
   }
 
   const prepare = () => {

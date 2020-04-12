@@ -47,7 +47,7 @@ export default ({ format }) => {
     routes[file.path] = file
   }
 
-  const remove = path => {
+  const remove = ({ path }) => {
     if (!routes[path]) return
     delete routes[path]
   }

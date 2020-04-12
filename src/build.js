@@ -12,6 +12,8 @@ export default options => {
     write: { routes: writeRoutes, tree: writeTree } = {},
   } = options
 
+  const files = {}
+
   const tree = writeTree && Tree(options)
   const routes = (writeRoutes || writeTree) && Routes(options)
 
@@ -111,23 +113,32 @@ export default options => {
     if (startTime === null) startTime = now()
   }
 
+  const _parse = pathStats => {
+    const [path] = pathStats
+    const file = parse(pathStats)
+    files[path] = file
+    return file
+  }
+
   const add = pathStats => {
     input()
-    const file = parse(pathStats)
+    const file = _parse(pathStats)
     builders.forEach(x => x.add(file))
     invalidate()
   }
 
   const update = pathStats => {
     input()
-    const file = parse(pathStats)
+    const file = _parse(pathStats)
     builders.forEach(x => x.update(file))
     invalidate()
   }
 
   const remove = ([path]) => {
     input()
-    builders.forEach(x => x.delete(path))
+    const file = files[path]
+    delete files[path]
+    builders.forEach(x => x.remove(file))
     invalidate()
   }
 
