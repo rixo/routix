@@ -7,6 +7,9 @@ const wait = delay => new Promise(resolve => setTimeout(resolve, delay))
 
 let read
 
+const noWriteWarning =
+  'Both routes and tree generation are disabled, routix will do nothing'
+
 const createPlugin = options => {
   const { watchDelay, write } = options
 
@@ -34,21 +37,19 @@ const createPlugin = options => {
   return {
     name: 'routix',
 
-    buildStart() {
-      if (!write.routes && !write.tree) {
-        this.warn(
-          'Both routes and tree generation are disabled, routix will do nothing'
-        )
-      }
-    },
-
     // prevent the build from running, until routes.js is completely generated
     //
-    // NOTE Nollup 0.9.0 does not implement buildStart correctly (but
-    //      renderStart is probably better suited to our purpose anyway)
+    // FIXME Nollup 0.9.0 does not implement buildStart correctly (but
+    //       renderStart kicks in too late to prevent Rollup from using an
+    //       already existing routes.js...)
     //
-    async renderStart() {
+    async buildStart() {
       try {
+        if (!write.routes && !write.tree) {
+          this.warn(noWriteWarning)
+          return
+        }
+
         // catch & report start errors
         await readyPromise
 

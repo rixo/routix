@@ -23,7 +23,8 @@ export default options => {
   let timeout = null
   let scheduled = false
   let running = false
-  let promise = Promise.resolve()
+  let buildPromise = Promise.resolve()
+  let idlePromise = Promise.resolve()
   let startTime = null
 
   const isIdle = () => started && timeout === null && !scheduled && !running
@@ -82,17 +83,23 @@ export default options => {
     timeout = null
     if (scheduled) return
     scheduled = true
-    promise = promise.then(() => {
+    buildPromise = buildPromise.then(() => {
       scheduled = false
       return build()
     })
+    return buildPromise
   }
 
   const invalidate = () => {
     if (!started) return
     if (timeout !== null) clearTimeout(timeout)
-    timeout = setTimeout(schedule, buildDebounce)
-    notifyChange()
+    idlePromise = new Promise((resolve, reject) => {
+      timeout = setTimeout(
+        () => schedule().then(resolve, reject),
+        buildDebounce
+      )
+      notifyChange()
+    })
   }
 
   const start = () => {
@@ -126,7 +133,7 @@ export default options => {
 
   const onIdle = () => {
     if (isIdle()) return Promise.resolve()
-    return promise.then(onIdle)
+    return Promise.all([idlePromise, buildPromise]).then(onIdle)
   }
 
   let changeListeners = []
