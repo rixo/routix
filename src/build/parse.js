@@ -1,9 +1,9 @@
 import * as path from 'path'
-import { escapeRe } from '@/util'
+import { identity } from '@/util'
 
-const orderPrefixRegex = /(\/|^)[\d-]+_*(?=[^\d-/][^/]*(\/|$))/g
+const parseFile = options => ([relative, stats]) => {
+  const { dir, extensions, leadingSlash, transform = identity } = options
 
-const parseFile = ({ dir, extensions }) => ([relative, stats]) => {
   const item = {
     relative,
     absolute: path.join(dir, relative),
@@ -19,33 +19,12 @@ const parseFile = ({ dir, extensions }) => ([relative, stats]) => {
     item.path = relative
   }
 
-  // item.path = '/' + item.path
-
-  // drop file extensions
-  item.path = item.path.replace(
-    new RegExp(
-      `((?:^|/)[^/]+)(?:${extensions.map(escapeRe).join('|')})(/|$)`,
-      'g'
-    ),
-    '$1$2'
-  )
-
-  // . => /
-  item.path = item.path.replace(/\./g, '/')
-
-  // order prefix 00-
-  const basename = path.basename(item.path)
-  item.sortKey = basename
-  if (!/^[\d-]*_*$/.test(basename)) {
-    item.path = item.path.replace(orderPrefixRegex, '$1')
-    item.segment = basename.replace(orderPrefixRegex, '$1')
-  } else {
-    item.segment = basename
+  if (leadingSlash) {
+    item.path = '/' + item.path
   }
 
-  item.title = item.segment.replace(/_+/, ' ')
-
-  return item
+  // transform is allowed to either return a new object, or mutate
+  return transform(item, options) || item
 }
 
 export default parseFile
