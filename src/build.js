@@ -1,10 +1,15 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import parser from '@/parse'
+import { Deferred } from '@/util'
 import Tree from './build/tree'
 import Routes from './build/routes'
 
 const now = Date.now
+
+const resolved = Promise.resolve()
+
+const wait = delay => new Promise(resolve => setTimeout(resolve, delay))
 
 export default options => {
   const {
@@ -25,9 +30,10 @@ export default options => {
   let timeout = null
   let scheduled = false
   let running = false
+  const startDeferred = Deferred()
   let buildPromise = Promise.resolve()
   let idlePromise = Promise.resolve()
-  let startTime = null
+  let startTime = now()
 
   const isIdle = () => started && timeout === null && !scheduled && !running
 
@@ -112,6 +118,7 @@ export default options => {
     input()
     started = true
     invalidate()
+    startDeferred.resolve()
   }
 
   const _parse = pathStats => {
@@ -143,9 +150,22 @@ export default options => {
     invalidate()
   }
 
-  const onIdle = () => {
-    if (isIdle()) return Promise.resolve()
-    return Promise.all([idlePromise, buildPromise]).then(onIdle)
+  const _onIdle = () =>
+    isIdle() ? resolved : Promise.all([idlePromise, buildPromise]).then(_onIdle)
+
+  const onIdle = async (changeTimeout = 0) => {
+    await startDeferred.promise
+
+    if (changeTimeout) {
+      // we stop waiting early if Routix has caught the change (waitChange)
+      // -- this ensures optimal waiting time but, unfortunately, in the
+      // marginal case of when user deletes/renames a Routix page file;
+      // we're still degenerate (i.e. wait full delay) for any other source
+      // watched by Rollup only...
+      await Promise.race([wait(changeTimeout), build.onChange()])
+    }
+
+    return _onIdle()
   }
 
   let changeListeners = []
