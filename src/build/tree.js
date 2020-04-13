@@ -48,13 +48,13 @@ const _tree = rootPath => children =>
   ])
 
 const unfolder = options => {
-  const { parse = identity, sortChildren = false } = options
+  const { parse = identity, sortChildren = false, cacheChildren } = options
 
   // const compareChildEntries = ([a], [b]) => (a === b ? 0 : a < b ? -1 : 1)
   const compareChildEntries = sortChildren && (([a], [b]) => sortChildren(a, b))
 
   const unfold = (node, _path, dirs) => {
-    const children = Object.entries(node)
+    // --- create directory node (if needed) ---
 
     if (!node[FILE]) {
       const p = _path.slice(0, -1)
@@ -68,19 +68,25 @@ const unfolder = options => {
 
     const file = node[FILE]
 
-    let hasFiles = false
-    for (const [seg, x] of children) {
-      const hasChildrenFiles = unfold(x, _path + seg + '/', dirs)
-      hasFiles = hasFiles || hasChildrenFiles
+    // --- create children prop (if not cached) ---
+
+    if (!cacheChildren || !file.children) {
+      const children = Object.entries(node)
+
+      let hasFiles = false
+      for (const [seg, x] of children) {
+        const hasChildrenFiles = unfold(x, _path + seg + '/', dirs)
+        hasFiles = hasFiles || hasChildrenFiles
+      }
+
+      if (sortChildren) {
+        children.sort(compareChildEntries)
+      }
+
+      file.children = children.map(([, x]) => x[FILE])
+
+      file.isEmpty = !file.isFile && !hasFiles
     }
-
-    if (sortChildren) {
-      children.sort(compareChildEntries)
-    }
-
-    file.children = children.map(([, x]) => x[FILE])
-
-    file.isEmpty = !file.isFile && !hasFiles
 
     if (!file.isFile && !file.isRoot && !file.isEmpty) {
       dirs.push(file)
@@ -93,15 +99,24 @@ const unfolder = options => {
 }
 
 export default options => {
-  const { keepEmpty, leadingSlash } = options
+  const { keepEmpty, leadingSlash, cacheChildren = true } = options
 
   const root = {
     [FILE]: { isRoot: true, path: '' },
   }
 
-  const unfold = unfolder(options)
+  const unfold = unfolder({ ...options, cacheChildren })
+
+  const invalidate = file => {
+    const steps = file.path.split('/')
+    const nodes = getNodes(root, steps)
+    for (const node of nodes) {
+      if (node[FILE]) delete node[FILE].children
+    }
+  }
 
   const add = file => {
+    if (cacheChildren) invalidate(file)
     const steps = file.path.split('/')
     const node = getNode(root, steps)
     if (node[FILE] && node[FILE].isFile) {
@@ -110,16 +125,19 @@ export default options => {
     node[FILE] = file
   }
 
-  const invalidate = file => {}
-
   const update = (file, previous) => {
-    invalidate(previous)
+    if (cacheChildren) {
+      invalidate(file)
+      invalidate(previous)
+    }
     const steps = file.path.split('/')
-    const node = getNode(root, steps)
+    const nodes = getNodes(root, steps)
+    const node = nodes.pop()
     node[FILE] = file
   }
 
   const remove = file => {
+    if (cacheChildren) invalidate(file)
     const steps = file.path.split('/')
     const nodes = getNodes(root, steps.slice(0, -1))
     let i = steps.length - 1
@@ -130,7 +148,6 @@ export default options => {
       if (Object.keys(node).length > 0) break
       i--
     } while (i >= 0)
-    invalidate(file)
   }
 
   const prepare = () => {
@@ -146,8 +163,6 @@ export default options => {
   const generate = () => _generate(root[FILE].children)
 
   return {
-    root,
-
     add,
     update,
     remove,
