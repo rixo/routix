@@ -23,7 +23,9 @@ const parseFile = options => ([relative, stats]) => {
     item.path = '/' + item.path
   }
 
-  return parse(item, options)
+  parse(item, options)
+
+  return item
 }
 
 export default parseFile

@@ -4,6 +4,7 @@ import parser from '@/parse'
 import { Deferred } from '@/util'
 import Tree from './build/tree'
 import Routes from './build/routes'
+import { indent } from './build/util'
 
 const now = Date.now
 
@@ -11,10 +12,13 @@ const resolved = Promise.resolve()
 
 const wait = delay => new Promise(resolve => setTimeout(resolve, delay))
 
-export default options => {
+export default (options = {}) => {
   const {
     buildDebounce = 50,
     write: { routes: writeRoutes, tree: writeTree } = {},
+    writeFile = (path, contents, encoding = 'utf8') =>
+      fs.promises.writeFile(path, contents, encoding),
+    log = console,
   } = options
 
   const files = {}
@@ -46,7 +50,7 @@ export default options => {
     const duration = now() - startTime
     startTime = null
     // eslint-disable-next-line no-console
-    console.info(`[routix] Written: ${targetsDisplayNames} (${duration}ms)`)
+    log.info(`[routix] Written: ${targetsDisplayNames} (${duration}ms)`)
   }
 
   const build = () => {
@@ -56,19 +60,19 @@ export default options => {
 
     running = true
 
-    const extra = tree ? tree.prepare() : null
+    const dirs = tree ? tree.prepare() : null
 
-    const _routes = routes.generate(extra)
+    const _routes = routes.generate(dirs)
 
     const promises = []
 
     if (writeRoutes) {
-      const contents = [
+      const contents = indent(0, '\n', [
         `${_routes}`,
-        `f.dirs = d`, // to avoid Rollup's mixed default/named exports warning
+        writeTree && `f.dirs = d`, // to avoid Rollup's mixed default/named exports warning
         `export default f\n`,
-      ].join('\n\n')
-      promises.push(fs.promises.writeFile(writeRoutes, contents, 'utf8'))
+      ])
+      promises.push(writeFile(writeRoutes, contents))
     }
 
     if (writeTree) {
@@ -77,7 +81,7 @@ export default options => {
         ? `import f from '${writeRoutes}'\n\nconst d = f.dirs`
         : _routes
       const contents = prefix + '\n\n' + _tree
-      promises.push(fs.promises.writeFile(writeTree, contents, 'utf8'))
+      promises.push(writeFile(writeTree, contents))
     }
 
     return Promise.all(promises)
@@ -98,14 +102,12 @@ export default options => {
     return buildPromise
   }
 
-  const invalidate = () => {
+  const invalidate = (debounce = buildDebounce) => {
     if (!started) return
     if (timeout !== null) clearTimeout(timeout)
     idlePromise = new Promise((resolve, reject) => {
-      timeout = setTimeout(
-        () => schedule().then(resolve, reject),
-        buildDebounce
-      )
+      const doSchedule = () => schedule().then(resolve, reject)
+      timeout = setTimeout(doSchedule, debounce)
       notifyChange()
     })
   }
@@ -117,7 +119,7 @@ export default options => {
   const start = () => {
     input()
     started = true
-    invalidate()
+    invalidate(0)
     startDeferred.resolve()
   }
 
@@ -130,6 +132,8 @@ export default options => {
 
   const add = pathStats => {
     input()
+    const [, stats] = pathStats
+    if (stats.isDirectory()) return
     const file = _parse(pathStats)
     builders.forEach(x => x.add(file))
     invalidate()
@@ -137,14 +141,18 @@ export default options => {
 
   const update = pathStats => {
     input()
+    const [, stats] = pathStats
+    if (stats.isDirectory()) return
     const file = _parse(pathStats)
     builders.forEach(x => x.update(file))
     invalidate()
   }
 
-  const remove = ([path]) => {
+  const remove = ([path, stats]) => {
     input()
+    if (stats.isDirectory()) return
     const file = files[path]
+    if (!file) return
     delete files[path]
     builders.forEach(x => x.remove(file))
     invalidate()
@@ -162,7 +170,7 @@ export default options => {
       // marginal case of when user deletes/renames a Routix page file;
       // we're still degenerate (i.e. wait full delay) for any other source
       // watched by Rollup only...
-      await Promise.race([wait(changeTimeout), build.onChange()])
+      await Promise.race([wait(changeTimeout), onChange()])
     }
 
     return _onIdle()

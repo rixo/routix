@@ -5,6 +5,7 @@
   "devDependencies": {
     "@rixo/eslint-config-svelte": "^0.8.1",
     "@rollup/plugin-node-resolve": "^7.1.1",
+    "dedent": "^0.7.0",
     "esm": "^3.2.25",
     "rollup": "^2.6.0",
     "svelte": "^3.20.1",

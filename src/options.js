@@ -12,9 +12,17 @@ const parseExtensions = (extensions = []) => {
 const emptyObject = {}
 
 export const parseOptions = ({
+  /**
+   * @type {string}
+   */
   dir,
+  /**
+   * @type {string[]}
+   */
   extensions = [],
   /**
+   * @type {bool | { routes: bool|string, tree: bool|string }}
+   *
    *     write: true|false
    *
    *     write: { routes: true|false, tree: true|false }
@@ -23,19 +31,24 @@ export const parseOptions = ({
    */
   write,
   /**
-   * {int|falsy} Defer Rollup build by this duration (ms); this is needed to
-   * ensure that our file watcher has the time to pick file changes (and then
-   * holds Rollup until routes.js is generated)
+   * @type {int|falsy}
+   * Defer Rollup build by this duration (ms); this is needed to ensure that
+   * our file watcher has the time to pick file changes (and then holds Rollup
+   * until routes.js is generated)
    */
   watchDelay = 20,
   /**
-   * {bool} Prepend paths with a leading slash
+   * @type {bool} Prepend paths with a leading slash
    */
   leadingSlash = false,
   /**
-   * {bool} Keep empty directories
+   * @type {bool} Keep empty directories
    */
   keepEmpty = false,
+  /**
+   * @type {bool} Import default import
+   */
+  importDefault = false,
   /**
    * Files:
    *
@@ -51,6 +64,7 @@ export const parseOptions = ({
    */
   parse = identity,
   /**
+   * @type {({ isFile: bool, path: string }) => object}
    * item => props
    */
   format = () => emptyObject,
@@ -60,6 +74,7 @@ export const parseOptions = ({
   extensions: parseExtensions(extensions),
   leadingSlash,
   keepEmpty,
+  importDefault,
   parse,
   format,
   write: {

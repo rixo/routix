@@ -1,53 +1,80 @@
-import { split, identity } from '@/util'
-import { isFile, notEmpty } from '@/model'
+import { identity, noop } from '@/util'
+import { notEmpty } from '@/model'
 
-import { _ref } from './util'
+import { indent, _ref } from './util'
 
 const _ = JSON.stringify
-
-const indent = (n, glue, lines) =>
-  lines.map(x => (/^\s/.test(x) ? x : '  '.repeat(n) + x)).join(glue)
 
 const _props = (props = {}) =>
   Object.entries(props).map(([prop, value]) => `${_(prop)}: ${_(value)}`)
 
-const _file = (props, { absolute, path }) =>
-  indent(1, '\n', [
-    '',
+const _children = children =>
+  children && `children: () => [${children.map(_ref).join(', ')}]`
+// indent(2, ',', [
+//   `get children() {`,
+//   indent(3, '', [
+//     'delete this.children',
+//     'return this.children = [' + children.map(_ref).join(', ') + ']',
+//   ]),
+//   `}`,
+// ])
+
+const _file = (props, importDefault, { absolute, path, children }) =>
+  indent.collapse(1, '', [
     '{',
-    indent(2, ',\n', [
+    indent(2, ',', [
       `path: ${_(path)}`,
-      `import: () => import(${_(absolute)}).then(dft)`,
+      `import: () => import(${_(absolute)})${
+        importDefault ? '.then(dft)' : ''
+      }`,
       ..._props(props),
+      children && children.length > 0 && _children(children),
     ]),
     '}',
   ])
 
 const _dir = (props, { path, children }) =>
-  indent(1, '\n', [
-    '',
+  indent.collapse(1, '', [
     '{',
-    indent(2, ',\n', [
+    indent(2, ',', [
       `path: ${_(path)}`,
       ..._props(props),
-      children && `children: () => [${children.map(_ref).join(', ')}]`,
+      // NOTE children not here when tree:false
+      // children && `children: () => [${children.map(_ref).join(', ')}]`,
+      _children(children),
     ]),
     '}',
   ])
 
-const _generate = (format, files, dirs) =>
-  [
-    `const dft = m => m.default`,
-    `const f /* files */ = [${files
-      .map(x => _file(format(x), x))
-      .join(',')}\n]`,
-    `const d /* dirs */ = [${dirs.map(x => _dir(format(x), x)).join(',')}\n]`,
-    `d.forEach(d => { d.children = d.children() })`,
-  ].join('\n\n')
+const _generate = ({ format, importDefault }, files, dirs) =>
+  indent(0, '\n', [
+    importDefault && `const dft = m => m.default`,
+
+    indent.collapse(0, '', [
+      'const f /* files */ = [',
+      indent(1, ',')(files.map(x => _file(format(x), importDefault, x))),
+      ']',
+    ]),
+
+    dirs &&
+      indent.collapse(0, '', [
+        'const d /* dirs */ = [',
+        indent(1, ',')(dirs.map(x => _dir(format(x), x))),
+        ']',
+      ]),
+
+    dirs &&
+      indent(0, '', [
+        'for (const g of [f, d])',
+        indent(1, '', [
+          'for (const x of g) x.children = x.children ? x.children() : []',
+        ]),
+      ]),
+  ])
 
 const addIndex = (x, i) => (x.i = i)
 
-export default ({ format, keepEmpty }) => {
+export default ({ format = noop, keepEmpty, importDefault = false }) => {
   const routes = {}
 
   const add = file => {
@@ -61,12 +88,11 @@ export default ({ format, keepEmpty }) => {
 
   const filter = keepEmpty ? identity : x => x.filter(notEmpty)
 
-  const generate = ({ virtuals } = {}) => {
-    const [files, dirs] = split(isFile, filter(Object.values(routes)))
-    dirs.push(...filter(virtuals))
+  const generate = (dirs = []) => {
+    const files = filter(Object.values(routes))
     files.forEach(addIndex)
-    dirs.forEach(addIndex)
-    return _generate(format, files, dirs)
+    if (dirs) dirs.forEach(addIndex)
+    return _generate({ format, importDefault }, files, dirs)
   }
 
   return {

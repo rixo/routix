@@ -1,6 +1,6 @@
 import { noop, pipe, identity } from '@/util'
 import { notEmpty } from '@/model'
-import { _ref } from './util'
+import { indent, _ref } from './util'
 
 const FILE = Symbol('routix.tree.FILE')
 
@@ -15,35 +15,52 @@ const getNode = (from, steps) => {
   return node
 }
 
-const _tree = rootPath => children =>
-  `export default {
-  path: ${JSON.stringify(rootPath)},
-  root: true,
-  children: ${
-    children.length === 0
-      ? '[]'
-      : `[\n    ${children.map(_ref).join(',\n    ')}\n  ]`
+const getNodes = (from, steps) => {
+  const nodes = [from]
+  let cursor = from
+  for (const step of steps) {
+    if (!cursor[step]) {
+      cursor[step] = {}
+    }
+    cursor = cursor[step]
+    nodes.push(cursor)
   }
+  return nodes
 }
-`
+
+const _tree = rootPath => children =>
+  indent(0, '', [
+    `export default {`,
+    indent(1, ',', [
+      `path: ${JSON.stringify(rootPath)}`,
+      `isRoot: true`,
+      children.length
+        ? indent(1, '', [
+            'children: [',
+            indent(2, ',', children.map(_ref)),
+            ']',
+          ])
+        : 'children: []',
+    ]),
+    '}',
+  ])
 
 const unfolder = options => {
-  const { parse } = options
+  const { parse = identity, sortChildren = false } = options
 
-  const unfold = (node, _path, virtuals) => {
+  // const compareChildEntries = ([a], [b]) => (a === b ? 0 : a < b ? -1 : 1)
+  const compareChildEntries = sortChildren && (([a], [b]) => sortChildren(a, b))
+
+  const unfold = (node, _path, dirs) => {
     const children = Object.entries(node)
 
     if (!node[FILE]) {
       const p = _path.slice(0, -1)
-      const file = parse(
-        {
-          isVirtual: true,
-          isFile: false,
-          path: p,
-        },
-        options
-      )
-      virtuals.push(file)
+      const file = {
+        isFile: false,
+        path: p,
+      }
+      parse(file, options)
       node[FILE] = file
     }
 
@@ -51,18 +68,23 @@ const unfolder = options => {
 
     let hasFiles = false
     for (const [seg, x] of children) {
-      const hasChildrenFiles = unfold(x, _path + seg + '/', virtuals)
+      const hasChildrenFiles = unfold(x, _path + seg + '/', dirs)
       hasFiles = hasFiles || hasChildrenFiles
+    }
+
+    if (sortChildren) {
+      children.sort(compareChildEntries)
     }
 
     file.children = children.map(([, x]) => x[FILE])
 
-    if (!file.isFile && !hasFiles) {
-      file.isEmpty = true
-      return false
+    file.isEmpty = !file.isFile && !hasFiles
+
+    if (!file.isFile && !file.isRoot && !file.isEmpty) {
+      dirs.push(file)
     }
 
-    return true
+    return !file.isEmpty
   }
 
   return unfold
@@ -72,7 +94,7 @@ export default options => {
   const { keepEmpty, leadingSlash } = options
 
   const root = {
-    [FILE]: { root: true, path: '' },
+    [FILE]: { isRoot: true, path: '' },
   }
 
   const unfold = unfolder(options)
@@ -88,15 +110,19 @@ export default options => {
 
   const remove = file => {
     const steps = file.path.split('/')
-    const leaf = steps.pop()
-    const node = getNode(root, steps)
-    delete node[leaf]
+    const nodes = getNodes(root, steps.slice(0, -1))
+    let i = steps.length - 1
+    do {
+      delete nodes[i][steps[i]]
+      if (Object.keys(nodes[i]).length > 0) break
+      i--
+    } while (i >= 0)
   }
 
   const prepare = () => {
-    const virtuals = []
-    unfold(root, '', virtuals)
-    return { virtuals }
+    const dirs = []
+    unfold(root, '', dirs)
+    return dirs
   }
 
   const filter = keepEmpty ? identity : x => x.filter(notEmpty)
