@@ -141,10 +141,11 @@ export default (options = {}) => {
 
   const update = pathStats => {
     input()
-    const [, stats] = pathStats
+    const [path, stats] = pathStats
     if (stats.isDirectory()) return
+    const previous = files[path]
     const file = _parse(pathStats)
-    builders.forEach(x => x.update(file))
+    builders.forEach(x => x.update(file, previous))
     invalidate()
   }
 

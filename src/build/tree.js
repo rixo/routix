@@ -1,8 +1,10 @@
-import { noop, pipe, identity } from '@/util'
+import { pipe, identity } from '@/util'
 import { notEmpty } from '@/model'
 import { indent, _ref } from './util'
 
 const FILE = Symbol('routix.tree.FILE')
+
+const isFileNode = node => node[FILE] && node[FILE].isFile
 
 const getNode = (from, steps) => {
   let node = from
@@ -108,15 +110,27 @@ export default options => {
     node[FILE] = file
   }
 
+  const invalidate = file => {}
+
+  const update = (file, previous) => {
+    invalidate(previous)
+    const steps = file.path.split('/')
+    const node = getNode(root, steps)
+    node[FILE] = file
+  }
+
   const remove = file => {
     const steps = file.path.split('/')
     const nodes = getNodes(root, steps.slice(0, -1))
     let i = steps.length - 1
     do {
-      delete nodes[i][steps[i]]
-      if (Object.keys(nodes[i]).length > 0) break
+      const node = nodes[i]
+      delete node[steps[i]]
+      if (isFileNode(node)) break
+      if (Object.keys(node).length > 0) break
       i--
     } while (i >= 0)
+    invalidate(file)
   }
 
   const prepare = () => {
@@ -135,7 +149,7 @@ export default options => {
     root,
 
     add,
-    update: noop,
+    update,
     remove,
 
     prepare,

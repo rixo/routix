@@ -48,20 +48,20 @@ const macro = async (t, { write, ...options }, ...steps) => {
       await step(build, files)
       await build.onIdle()
     } else if (typeof step === 'string') {
-      t.eq(files.routes.trim(), dedent(step), `routes (step ${i})`)
+      t.eq(files.routes.trim(), dedent(step), `routes #${i}`)
     } else {
       if (step.hasOwnProperty('routes')) {
         t.eq(
           files.routes && files.routes.trim(),
           step.routes && dedent(step.routes),
-          `routes (step ${i})`
+          `routes #${i}`
         )
       }
       if (step.hasOwnProperty('tree')) {
         t.eq(
           files.tree && files.tree.trim(),
           step.tree && dedent(step.tree),
-          `tree (step ${i})`
+          `tree #${i}`
         )
       }
     }
@@ -648,3 +648,113 @@ test(
     `,
   }
 )
+
+{
+  const x = {
+    routes: `
+        const f /* files */ = [
+          {
+            path: "a/b",
+            import: () => import("/pages/a/b.js"),
+            children: () => [f[1]]
+          },
+          {
+            path: "a/b/c",
+            import: () => import("/pages/a.b.c.js")
+          }
+        ]
+
+        const d /* dirs */ = [
+          {
+            path: "a",
+            children: () => [f[0]]
+          }
+        ]
+
+        for (const g of [f, d])
+          for (const x of g) x.children = x.children ? x.children() : []
+
+        f.dirs = d
+
+        export default f
+      `,
+    tree: `
+        import f from 'routes'
+
+        const d = f.dirs
+
+        export default {
+          path: "",
+          isRoot: true,
+          children: [
+            d[0]
+          ]
+        }
+      `,
+  }
+
+  test(
+    'virtual path shadowing existing file',
+    macro,
+    {
+      parse: x => {
+        x.path = x.path.replace(/\./g, '/')
+      },
+    },
+    build => {
+      build.add(['a', { isDirectory: yup }])
+      build.add(['a/b.js', { isDirectory: nope }])
+      build.add(['a.b.c.js', { isDirectory: nope }])
+      build.start()
+    },
+    x,
+    build => {
+      build.update(['a.b.c.js', { isDirectory: nope }])
+    },
+    x,
+    build => {
+      build.update(['a/b.js', { isDirectory: nope }])
+    },
+    x,
+    build => {
+      build.remove(['a.b.c.js', { isDirectory: nope }])
+    },
+    {
+      routes: `
+        const f /* files */ = [
+          {
+            path: "a/b",
+            import: () => import("/pages/a/b.js")
+          }
+        ]
+
+        const d /* dirs */ = [
+          {
+            path: "a",
+            children: () => [f[0]]
+          }
+        ]
+
+        for (const g of [f, d])
+          for (const x of g) x.children = x.children ? x.children() : []
+
+        f.dirs = d
+
+        export default f
+      `,
+      tree: `
+        import f from 'routes'
+
+        const d = f.dirs
+
+        export default {
+          path: "",
+          isRoot: true,
+          children: [
+            d[0]
+          ]
+        }
+      `,
+    }
+  )
+}
