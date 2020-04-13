@@ -9,15 +9,8 @@ const _props = (props = {}) =>
   Object.entries(props).map(([prop, value]) => `${_(prop)}: ${_(value)}`)
 
 const _children = children =>
+  // NOTE children not here when tree:false
   children && `children: () => [${children.map(_ref).join(', ')}]`
-// indent(2, ',', [
-//   `get children() {`,
-//   indent(3, '', [
-//     'delete this.children',
-//     'return this.children = [' + children.map(_ref).join(', ') + ']',
-//   ]),
-//   `}`,
-// ])
 
 const _file = (props, importDefault, { absolute, path, children }) =>
   indent.collapse(1, '', [
@@ -36,13 +29,7 @@ const _file = (props, importDefault, { absolute, path, children }) =>
 const _dir = (props, { path, children }) =>
   indent.collapse(1, '', [
     '{',
-    indent(2, ',', [
-      `path: ${_(path)}`,
-      ..._props(props),
-      // NOTE children not here when tree:false
-      // children && `children: () => [${children.map(_ref).join(', ')}]`,
-      _children(children),
-    ]),
+    indent(2, ',', [`path: ${_(path)}`, ..._props(props), _children(children)]),
     '}',
   ])
 
