@@ -1,6 +1,6 @@
-import { test, describe } from 'zorax'
+import { test, describe } from '.'
 
-import parser from './parse.js'
+import parser from '../src/parse'
 
 describe('parse factory', () => {
   test('is a function', t => {
