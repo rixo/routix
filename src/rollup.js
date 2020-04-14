@@ -50,7 +50,7 @@ const noWriteWarning =
  */
 
 const createPlugin = options => {
-  const { watchDelay, write } = options
+  const { watchDelay, write, watch } = options
 
   if (read) {
     // eslint-disable-next-line no-console
@@ -62,8 +62,9 @@ const createPlugin = options => {
 
   read = reader(
     {
-      watch: !!process.env.ROLLUP_WATCH,
       ...options,
+      // NOTE CheapWatch bails out if watch is not a bool
+      watch: watch != null ? watch : !!process.env.ROLLUP_WATCH,
     },
     build
   )
