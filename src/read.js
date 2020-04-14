@@ -3,8 +3,9 @@ import CheapWatch from 'cheap-watch'
 import { pipe, map } from '@/util/fp'
 
 export default ({ dir, extensions, watch = false }, build) => {
-  const filter = ({ path, stats }) =>
-    stats.isDirectory() || extensions.some(x => path.endsWith(x))
+  const isWatchedFile = path => extensions.some(x => path.endsWith(x))
+
+  const filter = ({ path, stats }) => stats.isDirectory() || isWatchedFile(path)
 
   const watcher = new CheapWatch({ dir, watch, filter })
 
@@ -35,5 +36,5 @@ export default ({ dir, extensions, watch = false }, build) => {
 
   const close = () => watcher.close()
 
-  return { init, close }
+  return { init, close, isWatchedFile }
 }
