@@ -42,10 +42,6 @@ export const parseOptions = ({
    */
   leadingSlash = false,
   /**
-   * @type {bool} Keep empty directories
-   */
-  keepEmpty = false,
-  /**
    * @type {bool} Import default import
    */
   importDefault = false,
@@ -73,7 +69,6 @@ export const parseOptions = ({
   dir: dir && path.resolve(dir),
   extensions: parseExtensions(extensions),
   leadingSlash,
-  keepEmpty,
   importDefault,
   parse,
   format,
