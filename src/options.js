@@ -87,8 +87,28 @@ export const parseOptions = ({
    */
   format = () => emptyObject,
 
-  // private
-  $$: { writeFile, buildDebounce, log } = {},
+  /**
+   * @type {bool} `true` to auto start Routix (only with node API)
+   */
+  start = false,
+
+  // --- Advanced ---
+
+  /**
+   * @type {int} Number of ms to wait for a possible new event before starting
+   * the build process.
+   */
+  buildDebounce = 50,
+
+  /**
+   * @type {object} Custom logger (with `console` API)
+   */
+  log,
+
+  /**
+   * @type {function} Custom file writer: `async (name, contents) => {}`
+   */
+  writeFile,
 } = {}) => ({
   watchDelay,
   dir: dir && path.resolve(dir),
@@ -114,6 +134,9 @@ export const parseOptions = ({
         ? defaultTreePath
         : path.resolve(write.tree),
   },
+  start,
   // internal (for testing)
-  $$: { writeFile, buildDebounce, log },
+  writeFile,
+  buildDebounce,
+  log,
 })

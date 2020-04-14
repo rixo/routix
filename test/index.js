@@ -30,12 +30,10 @@ export const buildMacro = builder => async (
       tree: '/out/tree',
       ...write,
     },
-    $$: {
-      log: { info: () => {} },
-      buildDebounce: 0,
-      writeFile: (name, contents) => {
-        files[name] = contents
-      },
+    log: { info: () => {} },
+    buildDebounce: 0,
+    writeFile: (name, contents) => {
+      files[name] = contents
     },
     ...options,
   })
