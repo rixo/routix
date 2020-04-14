@@ -4,7 +4,7 @@ import { pipe } from '@/util'
 import { parseOptions } from '@/options'
 
 const createRoutix = options => {
-  const { write } = options
+  const { log, write, start } = options
 
   const build = builder(options)
 
@@ -16,6 +16,12 @@ const createRoutix = options => {
 
   const { onIdle } = build
   const { init, isWatchedFile, close } = read
+
+  if (start) {
+    setTimeout(() => {
+      read.init().catch(err => log.error(err))
+    })
+  }
 
   return {
     start: init,

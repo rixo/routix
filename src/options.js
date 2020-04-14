@@ -103,7 +103,7 @@ export const parseOptions = ({
   /**
    * @type {object} Custom logger (with `console` API)
    */
-  log,
+  log = console,
 
   /**
    * @type {function} Custom file writer: `async (name, contents) => {}`
