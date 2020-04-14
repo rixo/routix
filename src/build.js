@@ -46,7 +46,8 @@ export default (options = {}) => {
   let lastInvalidateTime = null
 
   const isIdle = () =>
-    started && timeout === null && !scheduled && !running && latches === 0
+    errors.length > 0 ||
+    (started && timeout === null && !scheduled && !running && latches === 0)
 
   const targetsDisplayNames = [writeRoutes, writeTree]
     .filter(Boolean)
@@ -101,10 +102,14 @@ export default (options = {}) => {
     timeout = null
     if (scheduled) return
     scheduled = true
-    buildPromise = buildPromise.then(() => {
-      scheduled = false
-      return build()
-    })
+    buildPromise = buildPromise
+      .then(() => {
+        scheduled = false
+        return build()
+      })
+      .catch(err => {
+        errors.push(err)
+      })
     return buildPromise
   }
 
@@ -122,16 +127,14 @@ export default (options = {}) => {
     // above)
     const resolvePrevious = _resolveIdlePromise
 
-    idlePromise = new Promise((resolve, reject) => {
+    idlePromise = new Promise(resolve => {
       _resolveIdlePromise = resolve
       const doSchedule = () => {
         if (latches > 0) {
           resolve()
           return
         }
-        schedule().then(() => {
-          resolve()
-        }, reject)
+        schedule().finally(resolve)
       }
       timeout = setTimeout(doSchedule, debounce)
       notifyChange() // must happen once timeout is non null (for idle state)
@@ -247,7 +250,7 @@ export default (options = {}) => {
       err.name = 'RoutixBuildError'
       err.errors = errors
       errors = []
-      return Promise.reject(err)
+      throw err
     }
   }
 

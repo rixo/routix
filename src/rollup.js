@@ -86,9 +86,15 @@ const createPlugin = options => {
     // NOTE watchDelay is needed to ensure that Routix's file watcher picks the
     // change event before Rollup (see details above)
     //
-    load(id) {
-      if (isWriteTarget(id) || read.isWatchedFile(id)) {
-        return build.onIdle(watchDelay)
+    async load(id) {
+      // NOTE onIdle rethrows (and flushes) build / parse errors
+      try {
+        if (isWriteTarget(id) || read.isWatchedFile(id)) {
+          await build.onIdle(watchDelay)
+        }
+      } catch (err) {
+        if (err.errors) err.errors.forEach(e => this.error(e))
+        else this.error(err)
       }
     },
 

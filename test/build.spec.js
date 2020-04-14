@@ -57,6 +57,30 @@ test('basic', macro, {}, [
   },
 ])
 
+test(
+  'build errors',
+  macro,
+  {
+    parse: async () => {
+      throw new Error('boom')
+    },
+  },
+  [
+    async (build, options, t) => {
+      build.add(['a.js', { isDirectory: nope }])
+      build.add(['foo/b.js', { isDirectory: nope }])
+      build.start()
+      let err = null
+      await build.onIdle().catch(_err => {
+        err = _err
+      })
+      t.ok(err)
+      t.ok(err.errors)
+      t.eq(err.errors.length, 2)
+    },
+  ]
+)
+
 test('importDefault', macro, { importDefault: true }, [
   build => {
     build.add(['a.js', { isDirectory: nope }])
