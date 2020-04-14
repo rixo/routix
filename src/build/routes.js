@@ -12,9 +12,9 @@ const _children = children =>
   // NOTE children not here when tree:false
   children && `children: () => [${children.map(_ref).join(', ')}]`
 
-const _file = (props, importDefault, { absolute, path, children }) =>
-  indent.collapse(1, '', [
-    '{',
+const _file = (props, importDefault, { i, absolute, path, children }) =>
+  indent(1, '', [
+    `{ // f[${i}]`,
     indent(2, ',', [
       `path: ${_(path)}`,
       `import: () => import(${_(absolute)})${
@@ -26,9 +26,9 @@ const _file = (props, importDefault, { absolute, path, children }) =>
     '}',
   ])
 
-const _dir = (props, { path, children }) =>
-  indent.collapse(1, '', [
-    '{',
+const _dir = (props, { i, path, children }) =>
+  indent(1, '', [
+    `{ // d[${i}]`,
     indent(2, ',', [`path: ${_(path)}`, ..._props(props), _children(children)]),
     '}',
   ])

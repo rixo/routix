@@ -80,18 +80,18 @@ test(
   {
     routes: `
       const f /* files */ = [
-        {
+        { // f[0]
           path: "a",
           import: () => import("/pages/a.js")
         },
-        {
+        { // f[1]
           path: "foo/b",
           import: () => import("/pages/foo/b.js")
         }
       ]
 
       const d /* dirs */ = [
-        {
+        { // d[0]
           path: "foo",
           children: () => [f[1]]
         }
@@ -135,18 +135,18 @@ test(
       const dft = m => m.default
 
       const f /* files */ = [
-        {
+        { // f[0]
           path: "a",
           import: () => import("/pages/a.js").then(dft)
         },
-        {
+        { // f[1]
           path: "foo/b",
           import: () => import("/pages/foo/b.js").then(dft)
         }
       ]
 
       const d /* dirs */ = [
-        {
+        { // d[0]
           path: "foo",
           children: () => [f[1]]
         }
@@ -190,11 +190,11 @@ test(
   {
     routes: `
       const f /* files */ = [
-        {
+        { // f[0]
           path: "a",
           import: () => import("/pages/a.js")
         },
-        {
+        { // f[1]
           path: "foo/b",
           import: () => import("/pages/foo/b.js")
         }
@@ -219,18 +219,18 @@ test(
     routes: undefined,
     tree: `
       const f /* files */ = [
-        {
+        { // f[0]
           path: "a",
           import: () => import("/pages/a.js")
         },
-        {
+        { // f[1]
           path: "foo/b",
           import: () => import("/pages/foo/b.js")
         }
       ]
 
       const d /* dirs */ = [
-        {
+        { // d[0]
           path: "foo",
           children: () => [f[1]]
         }
@@ -266,18 +266,18 @@ test(
   },
   `
     const f /* files */ = [
-      {
+      { // f[0]
         path: "foo/bar/baz",
         import: () => import("/pages/foo/bar.baz.js")
       }
     ]
 
     const d /* dirs */ = [
-      {
+      { // d[0]
         path: "foo/bar",
         children: () => [f[0]]
       },
-      {
+      { // d[1]
         path: "foo",
         children: () => [d[0]]
       }
@@ -334,18 +334,18 @@ test(
     `,
     routes: `
       const f /* files */ = [
-        {
+        { // f[0]
           path: "foo/bar",
           import: () => import("/pages/foo/bar.js")
         },
-        {
+        { // f[1]
           path: "baz",
           import: () => import("/pages/baz.js")
         }
       ]
 
       const d /* dirs */ = [
-        {
+        { // d[0]
           path: "foo",
           children: () => [f[0]]
         }
@@ -365,7 +365,7 @@ test(
   {
     routes: `
       const f /* files */ = [
-        {
+        { // f[0]
           path: "baz",
           import: () => import("/pages/baz.js")
         }
@@ -400,18 +400,18 @@ test(
   {
     routes: `
       const f /* files */ = [
-        {
+        { // f[0]
           path: "baz",
           import: () => import("/pages/baz.js")
         },
-        {
+        { // f[1]
           path: "foo/baz",
           import: () => import("/pages/foo/baz.js")
         }
       ]
 
       const d /* dirs */ = [
-        {
+        { // d[0]
           path: "foo",
           children: () => [f[1]]
         }
@@ -454,18 +454,18 @@ test(
   {
     routes: `
       const f /* files */ = [
-        {
+        { // f[0]
           path: "foo/bar",
           import: () => import("/pages/foo/bar.js")
         },
-        {
+        { // f[1]
           path: "baz",
           import: () => import("/pages/baz.js")
         }
       ]
 
       const d /* dirs */ = [
-        {
+        { // d[0]
           path: "foo",
           children: () => [f[0]]
         }
@@ -499,22 +499,22 @@ test(
   {
     routes: `
       const f /* files */ = [
-        {
+        { // f[0]
           path: "foo/bar",
           import: () => import("/pages/foo/bar.js")
         },
-        {
+        { // f[1]
           path: "baz",
           import: () => import("/pages/baz.js")
         },
-        {
+        { // f[2]
           path: "foo/bat",
           import: () => import("/pages/foo/bat.js")
         }
       ]
 
       const d /* dirs */ = [
-        {
+        { // d[0]
           path: "foo",
           children: () => [f[0], f[2]]
         }
@@ -573,22 +573,22 @@ test(
     `,
     routes: `
       const f /* files */ = [
-        {
+        { // f[0]
           path: "a/b/c/d",
           import: () => import("/pages/a/b.c.d.js")
         }
       ]
 
       const d /* dirs */ = [
-        {
+        { // d[0]
           path: "a/b/c",
           children: () => [f[0]]
         },
-        {
+        { // d[1]
           path: "a/b",
           children: () => [d[0]]
         },
-        {
+        { // d[2]
           path: "a",
           children: () => [d[1]]
         }
@@ -622,18 +622,18 @@ test(
     `,
     routes: `
       const f /* files */ = [
-        {
+        { // f[0]
           path: "a/b/d",
           import: () => import("/pages/a/b.d.js")
         }
       ]
 
       const d /* dirs */ = [
-        {
+        { // d[0]
           path: "a/b",
           children: () => [f[0]]
         },
-        {
+        { // d[1]
           path: "a",
           children: () => [d[0]]
         }
@@ -653,19 +653,19 @@ test(
   const x = {
     routes: `
         const f /* files */ = [
-          {
+          { // f[0]
             path: "a/b",
             import: () => import("/pages/a/b.js"),
             children: () => [f[1]]
           },
-          {
+          { // f[1]
             path: "a/b/c",
             import: () => import("/pages/a.b.c.js")
           }
         ]
 
         const d /* dirs */ = [
-          {
+          { // d[0]
             path: "a",
             children: () => [f[0]]
           }
@@ -722,14 +722,14 @@ test(
     {
       routes: `
         const f /* files */ = [
-          {
+          { // f[0]
             path: "a/b",
             import: () => import("/pages/a/b.js")
           }
         ]
 
         const d /* dirs */ = [
-          {
+          { // d[0]
             path: "a",
             children: () => [f[0]]
           }
