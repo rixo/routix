@@ -88,3 +88,35 @@ routix.isWatchedFile(file)
 // close file watchers
 routix.close()
 ```
+
+## Options
+
+For now, see the [options.js](./src/options.js) file.
+
+## Customizing the output
+
+### `parse`
+
+```js
+// with actual files:
+parse = async ({ isFile: true, path, extension, absolute }, options) => void
+
+// with "virtual" dirs:
+parse = async ({ isFile: false, path }, options) => void
+```
+
+The `parse` function is called once with each file (that is, files that are initially present, and then existing files that are updated, and new files that are created).
+
+It is also called for each "directory", although in this case it may be called more than once for each. Note that those directories are not the one from the file system, but the ones that are derived from the returned file `path` when the tree is built -- when `write.tree` is false, then directories are not processed.
+
+The parse function is free to mutate the passed object, however its return value is ignored.
+
+### `format`
+
+```js
+format = ({ isFile, path, ... }) => ({ [prop]: any })
+```
+
+A `format` function can be passed to add extra props to items in the generated routes file. The function is passed the augmented (by `parse`) intermediary object and must return an object of prop / value pairs that will be added to the output.
+
+The `format` function is called for each file and directory. It must use the `isFile` prop if it want to distinguish between them.
