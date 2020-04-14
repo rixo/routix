@@ -40,9 +40,28 @@ export default {
   },
   plugins: [
     routix({
-      dir: '../../svench.routix/example/src',
+      dir: 'src/pages',
+      extensions: ['.svelte', '.svx'],
       write: { routes: true, tree: true },
-      extensions: ['.svench', '.svench.svx', '.svench.svelte'],
+      leadingSlash: true,
+      parse: file => {
+        // . => /
+        file.path = file.path.replace(/\./g, '/')
+
+        const segments = file.path.split('/')
+
+        let segment = segments.pop()
+
+        // foo/index => foo
+        if (segment === 'index') {
+          file.path = segments.join('/') || '/'
+          segment = segments[segments.length - 1]
+        }
+
+        // foo_bar_baz => "foo bar baz"
+        file.title = segment ? segment.replace(/_+/g, ' ') : '/'
+      },
+      format: ({ title }) => ({ title }),
     }),
 
     svelte({
@@ -55,7 +74,7 @@ export default {
       css: css => {
         css.write('public/build/bundle.css')
       },
-      extensions: ['.svelte', '.svench', '.svx'],
+      extensions: ['.svelte', '.svx'],
       preprocess: [
         mdsvex({
           extension: '.svx',
@@ -68,6 +87,7 @@ export default {
         // Turn on to disable preservation of local component
         // state -- i.e. non exported `let` variables
         noPreserveState: false,
+        injectCss: false,
 
         // See docs of rollup-plugin-svelte-hot for all available options:
         //

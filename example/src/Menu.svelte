@@ -4,7 +4,7 @@
 </script>
 
 <ul>
-  {#each items.sort((a, b) => a.sortKey.localeCompare(b.sortKey)) as item}
+  {#each items as item}
     <li>
       <a href={format(item.path)}>{item.title}</a>
       {#if item.children}
@@ -13,3 +13,9 @@
     </li>
   {/each}
 </ul>
+
+<style>
+  ul {
+    padding: 0 0.9rem;
+  }
+</style>

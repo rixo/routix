@@ -1868,7 +1868,7 @@ mime-db@1.43.0:
   version "1.43.0"
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.43.0.tgz#0a12e0502650e473d735535050e7c8f4eb4fae58"
 
-mime-types@^2.1.24, mime-types@~2.1.24:
+mime-types@^2.1.24, mime-types@^2.1.26, mime-types@~2.1.24:
   version "2.1.26"
   resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.26.tgz#9c921fc09b7e149a65dfdc0da4d20997200b0a06"
   dependencies:
@@ -2470,12 +2470,13 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
-rollup-plugin-hot@^0.0.14:
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/rollup-plugin-hot/-/rollup-plugin-hot-0.0.14.tgz#689f06d1c1cc11192ae56bf93331914e32af9ce1"
+rollup-plugin-hot@^0.0.16:
+  version "0.0.16"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-hot/-/rollup-plugin-hot-0.0.16.tgz#537ac7fad51a6f8069f25288f5627fc85479f167"
   dependencies:
     cors "^2.8.5"
     express "^4.17.1"
+    mime-types "^2.1.26"
     rollup-pluginutils "^2.8.2"
     ws "^7.1.2"
 

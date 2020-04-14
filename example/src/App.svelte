@@ -5,8 +5,11 @@
   import navaid from 'navaid'
   import Menu from './Menu.svelte'
 
+  let fallback = null
+
   const router = navaid('/', uri => {
-    console.log('__fallback', uri)
+    cmp = null
+    fallback = uri
   })
 
   let currentRoute
@@ -15,12 +18,12 @@
 
   const setRoute = route => async () => {
     if (!route.import) {
-      console.log(route)
+      cmp = null
       return
     }
     currentRoute = route
     try {
-      const _cmp = await route.import()
+      const { default: _cmp } = await route.import()
       if (currentRoute !== route) return
       error = null
       cmp = _cmp
@@ -34,37 +37,30 @@
     router.on(route.path, setRoute(route))
   }
 
-  router.on('whatever', (...args) => {
-    console.log(args)
-  })
-
   router.listen()
 
   onDestroy(router.unlisten)
 </script>
 
-<!-- <pre>{JSON.stringify(routes, false, 2)}</pre> -->
-<!-- <pre>{JSON.stringify(tree, false, 2)}</pre> -->
-
-<Menu items={tree.children} format={router.format} />
-<!-- <ul>
-  {#each routes.sort((a, b) => a.sortKey.localeCompare(b.sortKey)) as route}
-    <li>
-      <a href={'/' + route.path}>{route.title}</a>
-    </li>
-  {/each}
-</ul> -->
+<nav>
+  <Menu items={[tree]} format={router.format} />
+</nav>
 
 <main>
   {#if error}
     <pre>{error.stack || error}</pre>
-  {:else}
+  {:else if cmp}
     <svelte:component this={cmp} />
+  {:else}
+    <h1>Fallback</h1>
+    <pre>
+      <code>{fallback}</code>
+    </pre>
   {/if}
 </main>
 
 <style>
-  ul {
+  nav {
     float: left;
   }
 
