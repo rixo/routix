@@ -44,7 +44,7 @@ export default {
       extensions: ['.svelte', '.svx'],
       write: { routes: true, tree: true },
       leadingSlash: true,
-      parse: file => {
+      parse: async file => {
         // . => /
         file.path = file.path.replace(/\./g, '/')
 
