@@ -1,6 +1,5 @@
-import { pipe, identity } from '@/util'
-import { notEmpty } from '@/model'
-import { indent, _ref } from './util'
+import { noop, identity } from '@/util'
+import { indent, _ref, _props } from './util'
 
 const FILE = Symbol('routix.tree.FILE')
 
@@ -9,6 +8,7 @@ const isFileNode = node => node[FILE] && node[FILE].isFile
 const getNode = (from, steps) => {
   let node = from
   for (const step of steps) {
+    if (step === '') continue
     if (!node[step]) {
       node[step] = {}
     }
@@ -21,6 +21,7 @@ const getNodes = (from, steps) => {
   const nodes = [from]
   let cursor = from
   for (const step of steps) {
+    if (step === '') continue
     if (!cursor[step]) {
       cursor[step] = {}
     }
@@ -30,16 +31,17 @@ const getNodes = (from, steps) => {
   return nodes
 }
 
-const _tree = rootPath => children =>
+const _tree = (format, rootPath, root) =>
   indent(0, '', [
     `export default {`,
     indent(1, ',', [
       `path: ${JSON.stringify(rootPath)}`,
       `isRoot: true`,
-      children.length
+      ..._props(format(root)),
+      root.children.length
         ? indent(1, '', [
             'children: [',
-            indent(2, ',', children.map(_ref)),
+            indent(2, ',', root.children.map(_ref)),
             ']',
           ])
         : 'children: []',
@@ -73,10 +75,8 @@ const unfolder = options => {
     if (!cacheChildren || !file.children) {
       const children = Object.entries(node)
 
-      let hasFiles = false
       for (const [seg, x] of children) {
-        const hasChildrenFiles = unfold(x, _path + seg + '/', dirs)
-        hasFiles = hasFiles || hasChildrenFiles
+        unfold(x, _path + seg + '/', dirs)
       }
 
       if (sortChildren) {
@@ -84,45 +84,53 @@ const unfolder = options => {
       }
 
       file.children = children.map(([, x]) => x[FILE])
-
-      file.isEmpty = !file.isFile && !hasFiles
     }
 
-    if (!file.isFile && !file.isRoot && !file.isEmpty) {
+    if (!file.isFile && !file.isRoot) {
       dirs.push(file)
     }
-
-    return !file.isEmpty
   }
 
   return unfold
 }
 
 export default options => {
-  const { keepEmpty, leadingSlash, cacheChildren = true } = options
+  const { format = noop, leadingSlash, cacheChildren = true } = options
+
+  const rootPath = leadingSlash ? '/' : ''
 
   const root = {
-    [FILE]: { isRoot: true, path: '' },
+    [FILE]: { isRoot: true, path: rootPath },
   }
 
   const unfold = unfolder({ ...options, cacheChildren })
 
+  const split = leadingSlash ? x => x.slice(1).split('/') : x => x.split('/')
+
   const invalidate = file => {
-    const steps = file.path.split('/')
+    const steps = split(file.path)
     const nodes = getNodes(root, steps)
     for (const node of nodes) {
       if (node[FILE]) delete node[FILE].children
     }
   }
 
-  const add = file => {
-    if (cacheChildren) invalidate(file)
-    const steps = file.path.split('/')
+  const put = (file, replace) => {
+    const steps = split(file.path)
     const node = getNode(root, steps)
-    if (node[FILE] && node[FILE].isFile) {
-      throw new Error(`File node conflics: ${file.path}`)
+    if (node[FILE]) {
+      if (node[FILE].isRoot) {
+        root[FILE] = Object.assign(file, root[FILE])
+      } else if (!replace && node[FILE].isFile) {
+        throw new Error(`File node conflics: ${file.path}`)
+      }
     }
     node[FILE] = file
+  }
+
+  const add = file => {
+    if (cacheChildren) invalidate(file)
+    put(file, false)
   }
 
   const update = (file, previous) => {
@@ -130,15 +138,12 @@ export default options => {
       invalidate(file)
       invalidate(previous)
     }
-    const steps = file.path.split('/')
-    const nodes = getNodes(root, steps)
-    const node = nodes.pop()
-    node[FILE] = file
+    put(file, true)
   }
 
   const remove = file => {
     if (cacheChildren) invalidate(file)
-    const steps = file.path.split('/')
+    const steps = split(file.path)
     const nodes = getNodes(root, steps.slice(0, -1))
     let i = steps.length - 1
     do {
@@ -156,11 +161,7 @@ export default options => {
     return dirs
   }
 
-  const filter = keepEmpty ? identity : x => x.filter(notEmpty)
-
-  const _generate = pipe(filter, _tree(leadingSlash ? '/' : ''))
-
-  const generate = () => _generate(root[FILE].children)
+  const generate = () => _tree(format, rootPath, root[FILE])
 
   return {
     add,

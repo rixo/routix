@@ -252,6 +252,58 @@ test(
 )
 
 test(
+  'custom root',
+  macro,
+  {
+    parse: x => {
+      if (x.path === 'index') x.path = ''
+    },
+  },
+  build => {
+    build.add(['index.js', { isDirectory: nope }])
+    build.add(['foo.js', { isDirectory: nope }])
+    build.start()
+  },
+  {
+    routes: `
+      const f /* files */ = [
+        { // f[0]
+          path: "",
+          import: () => import("/pages/index.js"),
+          children: () => [f[1]]
+        },
+        { // f[1]
+          path: "foo",
+          import: () => import("/pages/foo.js")
+        }
+      ]
+
+      const d /* dirs */ = []
+
+      for (const g of [f, d])
+        for (const x of g) x.children = x.children ? x.children() : []
+
+      f.dirs = d
+
+      export default f
+    `,
+    tree: `
+      import f from 'routes'
+
+      const d = f.dirs
+
+      export default {
+        path: "",
+        isRoot: true,
+        children: [
+          f[1]
+        ]
+      }
+    `,
+  }
+)
+
+test(
   'nesting',
   macro,
   {
