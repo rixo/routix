@@ -49,10 +49,21 @@ const _tree = (format, rootPath, root) =>
     '}',
   ])
 
-const unfolder = options => {
-  const { parse = identity, sortChildren = false, cacheChildren } = options
+export default options => {
+  const {
+    leadingSlash,
+    parse = identity,
+    format = noop,
+    cacheChildren = true,
+    sortChildren = false,
+  } = options
 
-  // const compareChildEntries = ([a], [b]) => (a === b ? 0 : a < b ? -1 : 1)
+  const rootPath = leadingSlash ? '/' : ''
+
+  const root = {
+    [FILE]: { isRoot: true, path: rootPath },
+  }
+
   const compareChildEntries = sortChildren && (([a], [b]) => sortChildren(a, b))
 
   const unfold = (node, _path, dirs) => {
@@ -90,20 +101,6 @@ const unfolder = options => {
       dirs.push(file)
     }
   }
-
-  return unfold
-}
-
-export default options => {
-  const { format = noop, leadingSlash, cacheChildren = true } = options
-
-  const rootPath = leadingSlash ? '/' : ''
-
-  const root = {
-    [FILE]: { isRoot: true, path: rootPath },
-  }
-
-  const unfold = unfolder({ ...options, cacheChildren })
 
   const split = leadingSlash ? x => x.slice(1).split('/') : x => x.split('/')
 
