@@ -1,6 +1,6 @@
 {
   "name": "routix",
-  "version": "0.0.1-1",
+  "version": "0.0.1-2",
   "author": "rixo <rixo@rixo.fr>",
   "license": "ISC",
   "repository": {
@@ -11,7 +11,11 @@
   "bugs": {
     "url": "https://github.com/rixo/routix/issues"
   },
-  "files": ["routix.js", "rollup.js", "dist"],
+  "files": [
+    "routix.js",
+    "rollup.js",
+    "dist"
+  ],
   "main": "routix.js",
   "bin": {
     "routix": "./cli.js"
