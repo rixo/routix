@@ -50,11 +50,10 @@ const noWriteWarning =
  */
 
 const createPlugin = options => {
-  const { watchDelay, write, watch } = options
+  const { watchDelay, write, watch, log } = options
 
   if (read) {
-    // eslint-disable-next-line no-console
-    console.info('[routix] Closing previous watchers')
+    log.info('[routix] Closing previous watchers')
     read.close()
   }
 

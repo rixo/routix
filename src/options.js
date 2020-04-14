@@ -11,6 +11,14 @@ const parseExtensions = (extensions = []) => {
 
 const emptyObject = {}
 
+/* eslint-disable no-console */
+const defaultLogger = {
+  log: console.log.bind(console, '[routix]'),
+  info: console.info.bind(console, '[routix]'),
+  error: console.error.bind(console, '[routix]'),
+}
+/* eslint-enable no-console */
+
 export const parseOptions = ({
   /**
    * @type {string}
@@ -103,7 +111,7 @@ export const parseOptions = ({
   /**
    * @type {object} Custom logger (with `console` API)
    */
-  log = console,
+  log = defaultLogger,
 
   /**
    * @type {function} Custom file writer: `async (name, contents) => {}`

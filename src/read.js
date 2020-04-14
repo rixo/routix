@@ -2,18 +2,17 @@ import CheapWatch from 'cheap-watch'
 
 import { pipe, map } from '@/util/fp'
 
-export default ({ dir, extensions, watch = false }, build) => {
+export default ({ log, dir, extensions, watch = false }, build) => {
   const isWatchedFile = path => extensions.some(x => path.endsWith(x))
 
   const filter = ({ path, stats }) => stats.isDirectory() || isWatchedFile(path)
 
   const watcher = new CheapWatch({ dir, watch, filter })
 
-  // eslint-disable-next-line no-console
-  console.info(
-    `[routix] ${
-      watch ? 'Watching' : 'Reading'
-    } ${dir}/**/*.(${extensions.map(x => x.slice(1)).join('|')})`
+  log.info(
+    `${watch ? 'Watching' : 'Reading'} ${dir}/**/*.(${extensions
+      .map(x => x.slice(1))
+      .join('|')})`
   )
 
   if (watch) {

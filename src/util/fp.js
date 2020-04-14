@@ -6,6 +6,7 @@ const flower = (x, f) => (f(x), x)
 
 export const flow = (...fns) => x0 => fns.reduce(flower, x0)
 
+// debugging util
 export const _log = (...prefix) => x => {
   // eslint-disable-next-line no-console
   console.log(...prefix, x)

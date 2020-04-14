@@ -49,8 +49,7 @@ export default (options = {}) => {
   const logBuildSuccess = () => {
     const duration = now() - startTime
     startTime = null
-    // eslint-disable-next-line no-console
-    log.info(`[routix] Written: ${targetsDisplayNames} (${duration}ms)`)
+    log.info(`Written: ${targetsDisplayNames} (${duration}ms)`)
   }
 
   const build = () => {
