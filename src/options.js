@@ -36,7 +36,7 @@ export const parseOptions = ({
    * our file watcher has the time to pick file changes (and then holds Rollup
    * until routes.js is generated)
    */
-  watchDelay = 20,
+  watchDelay = 40,
   /**
    * @type {bool} Prepend paths with a leading slash
    */
