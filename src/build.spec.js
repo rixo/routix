@@ -42,7 +42,7 @@ const macro = async (t, { write, ...options }, ...steps) => {
   })
 
   let i = -1
-  for (const step of steps) {
+  for (const step of steps.flat()) {
     if (typeof step === 'function') {
       i++
       await step(build, files)
@@ -68,10 +68,7 @@ const macro = async (t, { write, ...options }, ...steps) => {
   }
 }
 
-test(
-  'basic',
-  macro,
-  {},
+test('basic', macro, {}, [
   build => {
     build.add(['a.js', { isDirectory: nope }])
     build.add(['foo/b.js', { isDirectory: nope }])
@@ -118,13 +115,10 @@ test(
         ]
       }
     `,
-  }
-)
+  },
+])
 
-test(
-  'importDefault',
-  macro,
-  { importDefault: true },
+test('importDefault', macro, { importDefault: true }, [
   build => {
     build.add(['a.js', { isDirectory: nope }])
     build.add(['foo/b.js', { isDirectory: nope }])
@@ -173,12 +167,10 @@ test(
         ]
       }
     `,
-  }
-)
+  },
+])
 
-test(
-  'only routes',
-  macro,
+test('only routes', macro, [
   {
     write: { tree: false },
   },
@@ -203,13 +195,10 @@ test(
       export default f
     `,
     tree: undefined,
-  }
-)
+  },
+])
 
-test(
-  'only tree',
-  macro,
-  { write: { routes: false } },
+test('only tree', macro, { write: { routes: false } }, [
   build => {
     build.add(['a.js', { isDirectory: nope }])
     build.add(['foo/b.js', { isDirectory: nope }])
@@ -248,17 +237,14 @@ test(
         ]
       }
     `,
-  }
-)
-
-test(
-  'custom root',
-  macro,
-  {
-    parse: x => {
-      if (x.path === 'index') x.path = ''
-    },
   },
+])
+
+const parseIndex = x => {
+  if (x.path === 'index') x.path = ''
+}
+
+test('custom root', macro, { parse: parseIndex }, [
   build => {
     build.add(['index.js', { isDirectory: nope }])
     build.add(['foo.js', { isDirectory: nope }])
@@ -300,17 +286,14 @@ test(
         ]
       }
     `,
-  }
-)
-
-test(
-  'nesting',
-  macro,
-  {
-    parse: x => {
-      x.path = x.path.replace(/\./g, '/')
-    },
   },
+])
+
+const parseVirtual = x => {
+  x.path = x.path.replace(/\./g, '/')
+}
+
+test('nesting', macro, { parse: parseVirtual }, [
   build => {
     build.add(['foo', { isDirectory: yup }])
     build.add(['foo/bar.baz.js', { isDirectory: nope }])
@@ -356,13 +339,10 @@ test(
     f.dirs = d
 
     export default f
-  `
-)
+  `,
+])
 
-test(
-  'delete nested',
-  macro,
-  {},
+test('delete nested', macro, {}, [
   build => {
     build.add(['foo/bar.js', { isDirectory: nope }])
     build.add(['foo', { isDirectory: yup }])
@@ -490,13 +470,10 @@ test(
         ]
       }
     `,
-  }
-)
+  },
+])
 
-test(
-  'adding to existing dir',
-  macro,
-  {},
+test('adding to existing dir', macro, {}, [
   build => {
     build.add(['foo', { isDirectory: yup }])
     build.add(['foo/bar.js', { isDirectory: nope }])
@@ -593,17 +570,10 @@ test(
         ]
       }
     `,
-  }
-)
-
-test(
-  'virtual paths',
-  macro,
-  {
-    parse: x => {
-      x.path = x.path.replace(/\./g, '/')
-    },
   },
+])
+
+test('virtual paths', macro, { parse: parseVirtual }, [
   build => {
     build.add(['a', { isDirectory: yup }])
     build.add(['a/b.c.d.js', { isDirectory: nope }])
@@ -698,11 +668,11 @@ test(
 
       export default f
     `,
-  }
-)
+  },
+])
 
 {
-  const x = {
+  const expected0 = {
     routes: `
         const f /* files */ = [
           { // f[0]
@@ -745,29 +715,22 @@ test(
       `,
   }
 
-  test(
-    'virtual path shadowing existing file',
-    macro,
-    {
-      parse: x => {
-        x.path = x.path.replace(/\./g, '/')
-      },
-    },
+  test('virtual path shadowing existing file', macro, { parse: parseVirtual }, [
     build => {
       build.add(['a', { isDirectory: yup }])
       build.add(['a/b.js', { isDirectory: nope }])
       build.add(['a.b.c.js', { isDirectory: nope }])
       build.start()
     },
-    x,
+    expected0,
     build => {
       build.update(['a.b.c.js', { isDirectory: nope }])
     },
-    x,
+    expected0,
     build => {
       build.update(['a/b.js', { isDirectory: nope }])
     },
-    x,
+    expected0,
     build => {
       build.remove(['a.b.c.js', { isDirectory: nope }])
     },
@@ -807,6 +770,6 @@ test(
           ]
         }
       `,
-    }
-  )
+    },
+  ])
 }
