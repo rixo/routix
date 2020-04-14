@@ -3,12 +3,12 @@ import dedent from 'dedent'
 
 /* eslint-disable */
 export const _routes = (_, files) => {
-  console.log(files.routes)
+  console.log(files['/out/routes'])
   process.exit()
 }
 
 export const _tree = (_, files) => {
-  console.log(files.tree)
+  console.log(files['/out/tree'])
   process.exit()
 }
 /* eslint-enable */
@@ -20,9 +20,14 @@ export const buildMacro = builder => async (
 ) => {
   const files = {}
 
+  const dumbSort = ({ path: a }, { path: b }) => (a === b ? 0 : a < b ? -1 : 1)
+
   const build = builder({
     // make tests deterministic
-    sortChildren: (a, b) => (a === b ? 0 : a < b ? -1 : 1),
+    sortFiles: dumbSort,
+    sortDirs: dumbSort,
+    sortChildren: dumbSort,
+
     dir: '/pages',
     extensions: ['.js'],
     write: {
@@ -42,7 +47,7 @@ export const buildMacro = builder => async (
   for (const step of steps.flat()) {
     if (typeof step === 'function') {
       i++
-      await step(build, files)
+      await step(build, files, t)
       await build.onIdle()
     } else if (typeof step === 'string') {
       const actual = files['/out/routes'] && files['/out/routes'].trim()

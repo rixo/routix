@@ -61,7 +61,13 @@ const _generate = ({ format, importDefault }, files, dirs) =>
 
 const addIndex = (x, i) => (x.i = i)
 
-export default ({ format = noop, keepEmpty, importDefault = false }) => {
+export default ({
+  format = noop,
+  keepEmpty,
+  importDefault = false,
+  sortFiles,
+  sortDirs,
+}) => {
   const routes = {}
 
   const add = file => {
@@ -77,8 +83,13 @@ export default ({ format = noop, keepEmpty, importDefault = false }) => {
 
   const generate = (dirs = []) => {
     const files = filter(Object.values(routes))
+
+    if (sortFiles) files.sort(sortFiles)
+    if (sortDirs) dirs.sort(sortDirs)
+
     files.forEach(addIndex)
     if (dirs) dirs.forEach(addIndex)
+
     return _generate({ format, importDefault }, files, dirs)
   }
 

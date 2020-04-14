@@ -16,13 +16,13 @@ describe('parse factory', () => {
 // TODO migrate userland tests to svench.routix
 
 describe('parse', () => {
-  const macro = (t, relative, dir, expected) => {
+  const macro = async (t, relative, dir, expected) => {
     const parse = parser({
       dir: '/app',
       extensions: ['.svench', '.svench.svelte'],
     })
 
-    const result = parse([relative, { isDirectory: () => dir }])
+    const result = await parse([relative, { isDirectory: () => dir }])
 
     for (const [key, value] of Object.entries(expected)) {
       t.eq(result[key], value, key)

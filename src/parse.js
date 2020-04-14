@@ -1,7 +1,7 @@
 import * as path from 'path'
 import { identity } from '@/util'
 
-const parseFile = options => ([relative, stats]) => {
+const parseFile = options => async ([relative, stats]) => {
   const { dir, extensions, leadingSlash, parse = identity } = options
 
   const item = {
@@ -23,7 +23,7 @@ const parseFile = options => ([relative, stats]) => {
     item.path = '/' + item.path
   }
 
-  parse(item, options)
+  await parse(item, options)
 
   return item
 }

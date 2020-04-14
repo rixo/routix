@@ -64,9 +64,7 @@ export default options => {
     [FILE]: { isRoot: true, path: rootPath },
   }
 
-  const compareChildEntries = sortChildren && (([a], [b]) => sortChildren(a, b))
-
-  const unfold = (node, _path, dirs) => {
+  const unfold = async (node, _path, dirs) => {
     // --- create directory node (if needed) ---
 
     if (!node[FILE]) {
@@ -75,7 +73,7 @@ export default options => {
         isFile: false,
         path: p,
       }
-      parse(file, options)
+      await parse(file, options)
       node[FILE] = file
     }
 
@@ -86,15 +84,15 @@ export default options => {
     if (!cacheChildren || !file.children) {
       const children = Object.entries(node)
 
-      for (const [seg, x] of children) {
-        unfold(x, _path + seg + '/', dirs)
-      }
-
-      if (sortChildren) {
-        children.sort(compareChildEntries)
-      }
+      await Promise.all(
+        children.map(([seg, x]) => unfold(x, _path + seg + '/', dirs))
+      )
 
       file.children = children.map(([, x]) => x[FILE])
+
+      if (sortChildren) {
+        file.children.sort(sortChildren)
+      }
     }
 
     if (!file.isFile && !file.isRoot) {
@@ -133,6 +131,7 @@ export default options => {
   const update = (file, previous) => {
     if (cacheChildren) {
       invalidate(file)
+      // remove(previous)
       invalidate(previous)
     }
     put(file, true)
@@ -152,9 +151,9 @@ export default options => {
     } while (i >= 0)
   }
 
-  const prepare = () => {
+  const prepare = async () => {
     const dirs = []
-    unfold(root, '', dirs)
+    await unfold(root, rootPath, dirs)
     return dirs
   }
 

@@ -248,12 +248,12 @@ test('nesting', macro, { parse: parseVirtual }, [
 
     const d /* dirs */ = [
       { // d[0]
-        path: "foo/bar",
-        children: () => [f[0]]
+        path: "foo",
+        children: () => [d[1]]
       },
       { // d[1]
-        path: "foo",
-        children: () => [d[0]]
+        path: "foo/bar",
+        children: () => [f[0]]
       }
     ]
 
@@ -298,7 +298,7 @@ test('delete nested', macro, {}, [
         path: "",
         isRoot: true,
         children: [
-          f[1],
+          f[0],
           d[0]
         ]
       }
@@ -306,19 +306,19 @@ test('delete nested', macro, {}, [
     routes: `
       const f /* files */ = [
         { // f[0]
-          path: "foo/bar",
-          import: () => import("/pages/foo/bar.js")
-        },
-        { // f[1]
           path: "baz",
           import: () => import("/pages/baz.js")
+        },
+        { // f[1]
+          path: "foo/bar",
+          import: () => import("/pages/foo/bar.js")
         }
       ]
 
       const d /* dirs */ = [
         { // d[0]
           path: "foo",
-          children: () => [f[0]]
+          children: () => [f[1]]
         }
       ]
 
@@ -423,19 +423,19 @@ test('adding to existing dir', macro, {}, [
     routes: `
       const f /* files */ = [
         { // f[0]
-          path: "foo/bar",
-          import: () => import("/pages/foo/bar.js")
-        },
-        { // f[1]
           path: "baz",
           import: () => import("/pages/baz.js")
+        },
+        { // f[1]
+          path: "foo/bar",
+          import: () => import("/pages/foo/bar.js")
         }
       ]
 
       const d /* dirs */ = [
         { // d[0]
           path: "foo",
-          children: () => [f[0]]
+          children: () => [f[1]]
         }
       ]
 
@@ -455,7 +455,7 @@ test('adding to existing dir', macro, {}, [
         path: "",
         isRoot: true,
         children: [
-          f[1],
+          f[0],
           d[0]
         ]
       }
@@ -468,12 +468,12 @@ test('adding to existing dir', macro, {}, [
     routes: `
       const f /* files */ = [
         { // f[0]
-          path: "foo/bar",
-          import: () => import("/pages/foo/bar.js")
-        },
-        { // f[1]
           path: "baz",
           import: () => import("/pages/baz.js")
+        },
+        { // f[1]
+          path: "foo/bar",
+          import: () => import("/pages/foo/bar.js")
         },
         { // f[2]
           path: "foo/bat",
@@ -484,7 +484,7 @@ test('adding to existing dir', macro, {}, [
       const d /* dirs */ = [
         { // d[0]
           path: "foo",
-          children: () => [f[0], f[2]]
+          children: () => [f[1], f[2]]
         }
       ]
 
@@ -504,11 +504,23 @@ test('adding to existing dir', macro, {}, [
         path: "",
         isRoot: true,
         children: [
-          f[1],
+          f[0],
           d[0]
         ]
       }
     `,
+  },
+])
+
+test('does not stall on remove -> add', macro, {}, [
+  async (build, files, t) => {
+    build.add(['a.js', { isDirectory: nope }])
+    build.start()
+    await build.onIdle()
+    build.remove(['a.js', { isDirectory: nope }])
+    build.add(['b.js', { isDirectory: nope }])
+    await build.onIdle()
+    t.pass()
   },
 ])
 
@@ -528,7 +540,7 @@ test('virtual paths', macro, { parse: parseVirtual }, [
         path: "",
         isRoot: true,
         children: [
-          d[2]
+          d[0]
         ]
       }
     `,
@@ -542,16 +554,16 @@ test('virtual paths', macro, { parse: parseVirtual }, [
 
       const d /* dirs */ = [
         { // d[0]
-          path: "a/b/c",
-          children: () => [f[0]]
+          path: "a",
+          children: () => [d[1]]
         },
         { // d[1]
           path: "a/b",
-          children: () => [d[0]]
+          children: () => [d[2]]
         },
         { // d[2]
-          path: "a",
-          children: () => [d[1]]
+          path: "a/b/c",
+          children: () => [f[0]]
         }
       ]
 
@@ -577,7 +589,7 @@ test('virtual paths', macro, { parse: parseVirtual }, [
         path: "",
         isRoot: true,
         children: [
-          d[1]
+          d[0]
         ]
       }
     `,
@@ -591,12 +603,12 @@ test('virtual paths', macro, { parse: parseVirtual }, [
 
       const d /* dirs */ = [
         { // d[0]
-          path: "a/b",
-          children: () => [f[0]]
+          path: "a",
+          children: () => [d[1]]
         },
         { // d[1]
-          path: "a",
-          children: () => [d[0]]
+          path: "a/b",
+          children: () => [f[0]]
         }
       ]
 

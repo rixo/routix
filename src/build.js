@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import parser from '@/parse'
-import { Deferred } from '@/util'
+import { Deferred, noop } from '@/util'
 import Tree from './build/tree'
 import Routes from './build/routes'
 import { indent } from './build/util'
@@ -29,6 +29,7 @@ export default (options = {}) => {
   const builders = [routes, tree].filter(Boolean)
 
   const parse = parser(options)
+  let errors = []
 
   let started = false
   let timeout = null
@@ -36,10 +37,16 @@ export default (options = {}) => {
   let running = false
   const startDeferred = Deferred()
   let buildPromise = Promise.resolve()
+  // a promise that resolves when we arrive to a point when we might be
+  // idle (but not sure, because another volley of changes may have happened
+  // since we started processing the one for which this promise was created)
   let idlePromise = Promise.resolve()
   let startTime = now()
+  let latches = 0
+  let lastInvalidateTime = null
 
-  const isIdle = () => started && timeout === null && !scheduled && !running
+  const isIdle = () =>
+    started && timeout === null && !scheduled && !running && latches === 0
 
   const targetsDisplayNames = [writeRoutes, writeTree]
     .filter(Boolean)
@@ -52,14 +59,14 @@ export default (options = {}) => {
     log.info(`Written: ${targetsDisplayNames} (${duration}ms)`)
   }
 
-  const build = () => {
+  const build = async () => {
     if (!routes && !tree) {
       return Promise.resolve()
     }
 
     running = true
 
-    const dirs = tree ? tree.prepare() : null
+    const dirs = tree ? await tree.prepare() : null
 
     const _routes = routes.generate(dirs)
 
@@ -101,18 +108,65 @@ export default (options = {}) => {
     return buildPromise
   }
 
+  let _resolveIdlePromise = noop
+
   const invalidate = (debounce = buildDebounce) => {
     if (!started) return
-    if (timeout !== null) clearTimeout(timeout)
+
+    if (timeout !== null) {
+      clearTimeout(timeout)
+    }
+
+    // NOTE we still need to resolve the previous idlePromise, or _onIdle will
+    // hang on it (especially if we've just cancelled an active timeout just
+    // above)
+    const resolvePrevious = _resolveIdlePromise
+
     idlePromise = new Promise((resolve, reject) => {
-      const doSchedule = () => schedule().then(resolve, reject)
+      _resolveIdlePromise = resolve
+      const doSchedule = () => {
+        if (latches > 0) {
+          resolve()
+          return
+        }
+        schedule().then(() => {
+          resolve()
+        }, reject)
+      }
       timeout = setTimeout(doSchedule, debounce)
-      notifyChange()
+      notifyChange() // must happen once timeout is non null (for idle state)
     })
+
+    resolvePrevious()
+  }
+
+  const release = () => {
+    if (--latches === 0) {
+      invalidate(Math.max(0, buildDebounce - (Date.now() - lastInvalidateTime)))
+    }
+  }
+
+  // invalidates (i.e. make busy/non idle, and wait to see if more changes are
+  // coming for the debounce duration) right when the call is made, then wait
+  // for at least the debounce delay (hene lastInvalidateTime), and wait even
+  // longer if the given promise has not resolved at this point
+  const invalidateUntil = promise => {
+    if (!started) return promise
+    lastInvalidateTime = Date.now()
+    latches++
+    return promise.finally(release)
   }
 
   const input = () => {
-    if (startTime === null) startTime = now()
+    if (startTime === null) {
+      startTime = now()
+      latches = 0
+      errors = []
+    }
+  }
+
+  const pushError = err => {
+    errors.push(err)
   }
 
   const start = () => {
@@ -122,9 +176,10 @@ export default (options = {}) => {
     startDeferred.resolve()
   }
 
-  const _parse = pathStats => {
+  // NOTE parse is async, but we need add/update to
+  const _parse = async pathStats => {
     const [path] = pathStats
-    const file = parse(pathStats)
+    const file = await parse(pathStats)
     files[path] = file
     return file
   }
@@ -133,9 +188,13 @@ export default (options = {}) => {
     input()
     const [, stats] = pathStats
     if (stats.isDirectory()) return
-    const file = _parse(pathStats)
-    builders.forEach(x => x.add(file))
-    invalidate()
+    invalidateUntil(
+      _parse(pathStats)
+        .then(file => {
+          builders.forEach(x => x.add(file))
+        })
+        .catch(pushError)
+    )
   }
 
   const update = pathStats => {
@@ -143,19 +202,27 @@ export default (options = {}) => {
     const [path, stats] = pathStats
     if (stats.isDirectory()) return
     const previous = files[path]
-    const file = _parse(pathStats)
-    builders.forEach(x => x.update(file, previous))
-    invalidate()
+    invalidateUntil(
+      _parse(pathStats)
+        .then(file => {
+          builders.forEach(x => x.update(file, previous))
+        })
+        .catch(pushError)
+    )
   }
 
   const remove = ([path, stats]) => {
-    input()
-    if (stats.isDirectory()) return
-    const file = files[path]
-    if (!file) return
-    delete files[path]
-    builders.forEach(x => x.remove(file))
-    invalidate()
+    try {
+      input()
+      if (stats.isDirectory()) return
+      const file = files[path]
+      if (!file) return
+      delete files[path]
+      builders.forEach(x => x.remove(file))
+      invalidate()
+    } catch (err) {
+      pushError(err)
+    }
   }
 
   const _onIdle = () =>
@@ -173,7 +240,15 @@ export default (options = {}) => {
       await Promise.race([wait(changeTimeout), onChange()])
     }
 
-    return _onIdle()
+    await _onIdle()
+
+    if (errors.length > 0) {
+      const err = new Error('')
+      err.name = 'RoutixBuildError'
+      err.errors = errors
+      errors = []
+      return Promise.reject(err)
+    }
   }
 
   let changeListeners = []
