@@ -2,5 +2,7 @@
 /routes.js
 /tree.js
 /rollup.js
+/routix.js
+/dist/
 *.bak
 *.bak.js

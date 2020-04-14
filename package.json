@@ -11,9 +11,8 @@
   "bugs": {
     "url": "https://github.com/rixo/routix/issues"
   },
-  "files": [
-    "rollup.js"
-  ],
+  "files": ["routix.js", "rollup.js", "dist"],
+  "main": "routix.js",
   "bin": {
     "routix": "./cli.js"
   },
@@ -22,6 +21,8 @@
     "@rollup/plugin-node-resolve": "^7.1.1",
     "dedent": "^0.7.0",
     "esm": "^3.2.25",
+    "memfs": "^3.1.2",
+    "rewiremock": "^3.13.9",
     "rollup": "^2.6.0",
     "svelte": "^3.20.1",
     "zoar": "^0.0.3",

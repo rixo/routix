@@ -7,18 +7,6 @@ const macro = buildMacro(builder)
 const nope = () => false
 const yup = () => true
 
-/* eslint-disable */
-const _routes = (_, files) => {
-  console.log(files.routes)
-  process.exit()
-}
-
-const _tree = (_, files) => {
-  console.log(files.tree)
-  process.exit()
-}
-/* eslint-enable */
-
 test('basic', macro, {}, [
   build => {
     build.add(['a.js', { isDirectory: nope }])
@@ -53,7 +41,7 @@ test('basic', macro, {}, [
       export default f
     `,
     tree: `
-      import f from 'routes'
+      import f from '/out/routes'
 
       const d = f.dirs
 
@@ -105,7 +93,7 @@ test('importDefault', macro, { importDefault: true }, [
       export default f
     `,
     tree: `
-      import f from 'routes'
+      import f from '/out/routes'
 
       const d = f.dirs
 
@@ -225,7 +213,7 @@ test('custom root', macro, { parse: parseIndex }, [
       export default f
     `,
     tree: `
-      import f from 'routes'
+      import f from '/out/routes'
 
       const d = f.dirs
 
@@ -302,7 +290,7 @@ test('delete nested', macro, {}, [
   },
   {
     tree: `
-      import f from 'routes'
+      import f from '/out/routes'
 
       const d = f.dirs
 
@@ -364,7 +352,7 @@ test('delete nested', macro, {}, [
       export default f
     `,
     tree: `
-      import f from 'routes'
+      import f from '/out/routes'
 
       const d = f.dirs
 
@@ -408,7 +396,7 @@ test('delete nested', macro, {}, [
       export default f
     `,
     tree: `
-      import f from 'routes'
+      import f from '/out/routes'
 
       const d = f.dirs
 
@@ -459,7 +447,7 @@ test('adding to existing dir', macro, {}, [
       export default f
     `,
     tree: `
-      import f from 'routes'
+      import f from '/out/routes'
 
       const d = f.dirs
 
@@ -508,7 +496,7 @@ test('adding to existing dir', macro, {}, [
       export default f
     `,
     tree: `
-      import f from 'routes'
+      import f from '/out/routes'
 
       const d = f.dirs
 
@@ -532,7 +520,7 @@ test('virtual paths', macro, { parse: parseVirtual }, [
   },
   {
     tree: `
-      import f from 'routes'
+      import f from '/out/routes'
 
       const d = f.dirs
 
@@ -581,7 +569,7 @@ test('virtual paths', macro, { parse: parseVirtual }, [
   },
   {
     tree: `
-      import f from 'routes'
+      import f from '/out/routes'
 
       const d = f.dirs
 
@@ -652,7 +640,7 @@ test('virtual paths', macro, { parse: parseVirtual }, [
         export default f
       `,
     tree: `
-        import f from 'routes'
+        import f from '/out/routes'
 
         const d = f.dirs
 
@@ -709,7 +697,7 @@ test('virtual paths', macro, { parse: parseVirtual }, [
         export default f
       `,
       tree: `
-        import f from 'routes'
+        import f from '/out/routes'
 
         const d = f.dirs
 

@@ -16,10 +16,12 @@ export const parseOptions = ({
    * @type {string}
    */
   dir,
+
   /**
    * @type {string[]}
    */
   extensions = [],
+
   /**
    * @type {bool | { routes: bool|string, tree: bool|string }}
    *
@@ -30,21 +32,39 @@ export const parseOptions = ({
    *     write: { routes: '/path/to/file', tree: '' }
    */
   write,
+
+  /**
+   * @type {bool}
+   *
+   * Whether to watch FS after initial build.
+   *
+   * NOTE When used in Rollup, this option is set automatically by the plugin,
+   * based on the ROLLUP_WATCH env variable (it can be overridden, but it's
+   * probably not what you want).
+   */
+  watch = null,
+
   /**
    * @type {int|falsy}
+   *
    * Defer Rollup build by this duration (ms); this is needed to ensure that
    * our file watcher has the time to pick file changes (and then holds Rollup
-   * until routes.js is generated)
+   * until routes.js is generated).
+   *
+   * NOTE This is only useful when used as a bundler (Rollup) plugin.
    */
   watchDelay = 40,
+
   /**
    * @type {bool} Prepend paths with a leading slash
    */
   leadingSlash = false,
+
   /**
    * @type {bool} Import default import
    */
   importDefault = false,
+
   /**
    * Files:
    *
@@ -59,15 +79,21 @@ export const parseOptions = ({
    *     ({ isVirtual: true, path }) => item | undefined
    */
   parse = identity,
+
   /**
    * @type {({ isFile: bool, path: string }) => object}
+   *
    * item => props
    */
   format = () => emptyObject,
+
+  // private
+  $$: { writeFile, buildDebounce, log } = {},
 } = {}) => ({
   watchDelay,
   dir: dir && path.resolve(dir),
   extensions: parseExtensions(extensions),
+  watch,
   leadingSlash,
   importDefault,
   parse,
@@ -88,4 +114,6 @@ export const parseOptions = ({
         ? defaultTreePath
         : path.resolve(write.tree),
   },
+  // internal (for testing)
+  $$: { writeFile, buildDebounce, log },
 })

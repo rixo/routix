@@ -1,6 +1,18 @@
 export { test, describe } from 'zorax'
 import dedent from 'dedent'
 
+/* eslint-disable */
+export const _routes = (_, files) => {
+  console.log(files.routes)
+  process.exit()
+}
+
+export const _tree = (_, files) => {
+  console.log(files.tree)
+  process.exit()
+}
+/* eslint-enable */
+
 export const buildMacro = builder => async (
   t,
   { write, ...options },
@@ -13,17 +25,17 @@ export const buildMacro = builder => async (
     sortChildren: (a, b) => (a === b ? 0 : a < b ? -1 : 1),
     dir: '/pages',
     extensions: ['.js'],
-    buildDebounce: 0,
-    writeFile: (name, contents) => {
-      files[name] = contents
-    },
     write: {
-      routes: 'routes',
-      tree: 'tree',
+      routes: '/out/routes',
+      tree: '/out/tree',
       ...write,
     },
-    log: {
-      info: () => {},
+    $$: {
+      log: { info: () => {} },
+      buildDebounce: 0,
+      writeFile: (name, contents) => {
+        files[name] = contents
+      },
     },
     ...options,
   })
@@ -35,21 +47,19 @@ export const buildMacro = builder => async (
       await step(build, files)
       await build.onIdle()
     } else if (typeof step === 'string') {
-      t.eq(files.routes.trim(), dedent(step), `routes #${i}`)
+      const actual = files['/out/routes'] && files['/out/routes'].trim()
+      const expected = dedent(step)
+      t.eq(actual, expected, `routes #${i}`)
     } else {
       if (step.hasOwnProperty('routes')) {
-        t.eq(
-          files.routes && files.routes.trim(),
-          step.routes && dedent(step.routes),
-          `routes #${i}`
-        )
+        const actual = files['/out/routes'] && files['/out/routes'].trim()
+        const expected = step.routes && dedent(step.routes)
+        t.eq(actual, expected, `routes #${i}`)
       }
       if (step.hasOwnProperty('tree')) {
-        t.eq(
-          files.tree && files.tree.trim(),
-          step.tree && dedent(step.tree),
-          `tree #${i}`
-        )
+        const actual = files['/out/tree'] && files['/out/tree'].trim()
+        const expected = step.tree && dedent(step.tree)
+        t.eq(actual, expected, `tree #${i}`)
       }
     }
   }

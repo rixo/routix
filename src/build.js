@@ -14,11 +14,13 @@ const wait = delay => new Promise(resolve => setTimeout(resolve, delay))
 
 export default (options = {}) => {
   const {
-    buildDebounce = 50,
     write: { routes: writeRoutes, tree: writeTree } = {},
-    writeFile = (path, contents, encoding = 'utf8') =>
-      fs.promises.writeFile(path, contents, encoding),
-    log = console,
+    $$: {
+      buildDebounce = 50,
+      writeFile = (path, contents, encoding = 'utf8') =>
+        fs.promises.writeFile(path, contents, encoding),
+      log = console,
+    } = {},
   } = options
 
   const files = {}

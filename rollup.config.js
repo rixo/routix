@@ -2,10 +2,11 @@ import resolve from '@rollup/plugin-node-resolve'
 import builtins from 'builtin-modules'
 
 export default {
-  input: './src/rollup.js',
+  input: ['./src/rollup.js', './src/routix.js'],
   output: {
     format: 'cjs',
-    file: './rollup.js',
+    dir: '.',
+    chunkFileNames: 'dist/[name].js',
   },
   external: builtins,
   plugins: [
