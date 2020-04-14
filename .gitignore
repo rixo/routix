@@ -3,6 +3,7 @@
 /tree.js
 /rollup.js
 /routix.js
+/*.map
 /dist/
 *.bak
 *.bak.js
