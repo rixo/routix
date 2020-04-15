@@ -74,6 +74,11 @@ export default ({
     routes[file.path] = file
   }
 
+  const update = (file, previous) => {
+    delete routes[previous.path]
+    routes[file.path] = file
+  }
+
   const remove = ({ path }) => {
     if (!routes[path]) return
     delete routes[path]
@@ -95,7 +100,7 @@ export default ({
 
   return {
     add,
-    update: add,
+    update,
     remove,
 
     generate,

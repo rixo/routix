@@ -1,4 +1,5 @@
 import { test, buildMacro } from '.'
+// import { _routes, _tree } from '.'
 
 import builder from '../src/build'
 
@@ -748,3 +749,104 @@ test('virtual paths', macro, { parse: parseVirtual }, [
     },
   ])
 }
+
+test(
+  'same file changes path on update',
+  macro,
+  () => {
+    let i = 0
+    return {
+      parse: x => {
+        if (x.isFile) {
+          if (i++ === 0) {
+            x.path = 'a/' + x.path
+          } else {
+            x.path = 'b/' + x.path
+          }
+        }
+      },
+    }
+  },
+
+  build => {
+    build.add(['foo.js', { isDirectory: nope }])
+    build.start()
+  },
+  {
+    routes: `
+        const f /* files */ = [
+          { // f[0]
+            path: "a/foo",
+            import: () => import("/pages/foo.js")
+          }
+        ]
+
+        const d /* dirs */ = [
+          { // d[0]
+            path: "a",
+            children: () => [f[0]]
+          }
+        ]
+
+        for (const g of [f, d])
+          for (const x of g) x.children = x.children ? x.children() : []
+
+        f.dirs = d
+
+        export default f
+      `,
+    tree: `
+        import f from '/out/routes'
+
+        const d = f.dirs
+
+        export default {
+          path: "",
+          isRoot: true,
+          children: [
+            d[0]
+          ]
+        }
+      `,
+  },
+  build => {
+    build.update(['foo.js', { isDirectory: nope }])
+  },
+  {
+    routes: `
+        const f /* files */ = [
+          { // f[0]
+            path: "b/foo",
+            import: () => import("/pages/foo.js")
+          }
+        ]
+
+        const d /* dirs */ = [
+          { // d[0]
+            path: "b",
+            children: () => [f[0]]
+          }
+        ]
+
+        for (const g of [f, d])
+          for (const x of g) x.children = x.children ? x.children() : []
+
+        f.dirs = d
+
+        export default f
+      `,
+    tree: `
+        import f from '/out/routes'
+
+        const d = f.dirs
+
+        export default {
+          path: "",
+          isRoot: true,
+          children: [
+            d[0]
+          ]
+        }
+      `,
+  }
+)

@@ -13,11 +13,10 @@ export const _tree = (_, files) => {
 }
 /* eslint-enable */
 
-export const buildMacro = builder => async (
-  t,
-  { write, ...options },
-  ...steps
-) => {
+export const buildMacro = builder => async (t, _options, ...steps) => {
+  const { write, ...options } =
+    typeof _options === 'function' ? _options(t) : _options
+
   const files = {}
 
   const dumbSort = ({ path: a }, { path: b }) => (a === b ? 0 : a < b ? -1 : 1)

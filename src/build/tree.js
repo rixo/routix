@@ -130,9 +130,8 @@ export default options => {
 
   const update = (file, previous) => {
     if (cacheChildren) {
+      remove(previous)
       invalidate(file)
-      // remove(previous)
-      invalidate(previous)
     }
     put(file, true)
   }
@@ -140,15 +139,16 @@ export default options => {
   const remove = file => {
     if (cacheChildren) invalidate(file)
     const steps = split(file.path)
-    const nodes = getNodes(root, steps.slice(0, -1))
-    let i = steps.length - 1
-    do {
+    const nodes = getNodes(root, steps)
+    const target = nodes[nodes.length - 1]
+    delete target[FILE]
+    let i = nodes.length
+    while (i--) {
       const node = nodes[i]
       delete node[steps[i]]
       if (isFileNode(node)) break
       if (Object.keys(node).length > 0) break
-      i--
-    } while (i >= 0)
+    }
   }
 
   const prepare = async () => {
