@@ -1,8 +1,11 @@
 import * as path from 'path'
 import { identity } from '@/util'
+import findup from '@/util/findup'
 
-const defaultRoutesPath = path.resolve(__dirname, './routes.js')
-const defaultTreePath = path.resolve(__dirname, './tree.js')
+// we need to find up because we're probably in /dist
+const root = path.dirname(findup(__dirname, 'package.json'))
+const defaultRoutesPath = path.resolve(root, 'routes.js')
+const defaultTreePath = path.resolve(root, 'tree.js')
 
 const parseExtensions = (extensions = []) => {
   if (!extensions) return extensions
