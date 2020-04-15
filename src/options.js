@@ -3,9 +3,11 @@ import { identity } from '@/util'
 import findup from '@/util/findup'
 
 // we need to find up because we're probably in /dist
-const root = path.dirname(findup(__dirname, 'package.json'))
-const defaultRoutesPath = path.resolve(root, 'routes.js')
-const defaultTreePath = path.resolve(root, 'tree.js')
+let _root
+const root = () =>
+  _root || (_root = path.dirname(findup(__dirname, 'package.json')))
+const defaultRoutesPath = () => path.resolve(root(), 'routes.js')
+const defaultTreePath = () => path.resolve(root(), 'tree.js')
 
 const parseExtensions = (extensions = []) => {
   if (!extensions) return extensions
@@ -135,14 +137,14 @@ export const parseOptions = ({
       write === true ||
       !write.hasOwnProperty('routes') ||
       write.routes === true
-        ? defaultRoutesPath
+        ? defaultRoutesPath()
         : path.resolve(write.routes),
     tree:
       !write ||
       write === true ||
       !write.hasOwnProperty('tree') ||
       write.tree === true
-        ? defaultTreePath
+        ? defaultTreePath()
         : path.resolve(write.tree),
   },
   start,
