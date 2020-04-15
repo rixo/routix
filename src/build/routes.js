@@ -12,12 +12,16 @@ const _children = children =>
   // NOTE children not here when tree:false
   children && `children: () => [${children.map(_ref).join(', ')}]`
 
-const _file = (props, importDefault, { i, absolute, path, children }) =>
+const _file = (
+  props,
+  { importDefault, importProp },
+  { i, absolute, path, children }
+) =>
   indent(1, '', [
     `{ // f[${i}]`,
     indent(2, ',', [
       `path: ${_(path)}`,
-      `import: () => import(${_(absolute)})${
+      `${importProp}: () => import(${_(absolute)})${
         importDefault ? '.then(dft)' : ''
       }`,
       ..._props(props),
@@ -33,13 +37,16 @@ const _dir = (props, { i, path, children }) =>
     '}',
   ])
 
-const _generate = ({ format, importDefault }, files, dirs) =>
+const _generate = ({ format, importDefault, importProp }, files, dirs) =>
   indent(0, '\n', [
     importDefault && `const dft = m => m.default`,
 
     indent.collapse(0, '', [
       'const f /* files */ = [',
-      indent(1, ',')(files.map(x => _file(format(x), importDefault, x))),
+      indent(
+        1,
+        ','
+      )(files.map(x => _file(format(x), { importDefault, importProp }, x))),
       ']',
     ]),
 
@@ -65,6 +72,7 @@ export default ({
   format = noop,
   keepEmpty,
   importDefault = false,
+  importProp = 'import',
   sortFiles,
   sortDirs,
 }) => {
@@ -95,7 +103,7 @@ export default ({
     files.forEach(addIndex)
     if (dirs) dirs.forEach(addIndex)
 
-    return _generate({ format, importDefault }, files, dirs)
+    return _generate({ format, importDefault, importProp }, files, dirs)
   }
 
   return {

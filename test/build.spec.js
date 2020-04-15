@@ -82,58 +82,6 @@ test(
   ]
 )
 
-test('importDefault', macro, { importDefault: true }, [
-  build => {
-    build.add(['a.js', { isDirectory: nope }])
-    build.add(['foo/b.js', { isDirectory: nope }])
-    build.start()
-  },
-  {
-    routes: `
-      const dft = m => m.default
-
-      const f /* files */ = [
-        { // f[0]
-          path: "a",
-          import: () => import("/pages/a.js").then(dft)
-        },
-        { // f[1]
-          path: "foo/b",
-          import: () => import("/pages/foo/b.js").then(dft)
-        }
-      ]
-
-      const d /* dirs */ = [
-        { // d[0]
-          path: "foo",
-          children: () => [f[1]]
-        }
-      ]
-
-      for (const g of [f, d])
-        for (const x of g) x.children = x.children ? x.children() : []
-
-      f.dirs = d
-
-      export default f
-    `,
-    tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
-
-      export default {
-        path: "",
-        isRoot: true,
-        children: [
-          f[0],
-          d[0]
-        ]
-      }
-    `,
-  },
-])
-
 test('only routes', macro, [
   {
     write: { tree: false },

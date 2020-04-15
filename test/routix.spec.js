@@ -75,6 +75,86 @@ test('basic', macro, {}, [
   },
 ])
 
+test('importProp', macro, { importProp: 'component' }, [
+  build => {
+    build._add('a.js')
+    build.start()
+  },
+  {
+    routes: `
+      const f /* files */ = [
+        { // f[0]
+          path: "a",
+          component: () => import("/pages/a.js")
+        }
+      ]
+
+      const d /* dirs */ = []
+
+      for (const g of [f, d])
+        for (const x of g) x.children = x.children ? x.children() : []
+
+      f.dirs = d
+
+      export default f
+    `,
+    tree: `
+      import f from '/out/routes'
+
+      const d = f.dirs
+
+      export default {
+        path: "",
+        isRoot: true,
+        children: [
+          f[0]
+        ]
+      }
+    `,
+  },
+])
+
+test('importDefault', macro, { importDefault: true }, [
+  build => {
+    build._add('a.js')
+    build.start()
+  },
+  {
+    routes: `
+      const dft = m => m.default
+
+      const f /* files */ = [
+        { // f[0]
+          path: "a",
+          import: () => import("/pages/a.js").then(dft)
+        }
+      ]
+
+      const d /* dirs */ = []
+
+      for (const g of [f, d])
+        for (const x of g) x.children = x.children ? x.children() : []
+
+      f.dirs = d
+
+      export default f
+    `,
+    tree: `
+      import f from '/out/routes'
+
+      const d = f.dirs
+
+      export default {
+        path: "",
+        isRoot: true,
+        children: [
+          f[0]
+        ]
+      }
+    `,
+  },
+])
+
 // SKIP: watch mock does not work
 test.skip('watch', macro, { watch: true }, [
   build => {

@@ -79,6 +79,11 @@ export const parseOptions = ({
   importDefault = false,
 
   /**
+   * @type {string} Name of the import property in route objects
+   */
+  importProp = 'import',
+
+  /**
    * Files:
    *
    *     ({ isFile: true, absolute, relative, path, extension }) => item | undefined
@@ -129,6 +134,7 @@ export const parseOptions = ({
   watch,
   leadingSlash,
   importDefault,
+  importProp,
   parse,
   format,
   write: {
