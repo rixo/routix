@@ -64,6 +64,15 @@ export default options => {
     [FILE]: { isRoot: true, path: rootPath },
   }
 
+  const emitDirs = (children, dirs) => {
+    children.forEach(file => {
+      emitDirs(file.children)
+      if (!file.isFile && !file.isRoot) {
+        dirs.push(file)
+      }
+    })
+  }
+
   const unfold = async (node, _path, dirs) => {
     // --- create directory node (if needed) ---
 
@@ -93,6 +102,8 @@ export default options => {
       if (sortChildren) {
         file.children.sort(sortChildren)
       }
+    } else {
+      emitDirs(file.children, dirs)
     }
 
     if (!file.isFile && !file.isRoot) {

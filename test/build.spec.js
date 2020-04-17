@@ -798,3 +798,62 @@ test(
       `,
   }
 )
+
+const deeply_nested_dirs_expected = {
+  routes: `
+      const f /* files */ = [
+        { // f[0]
+          path: "a/b/c",
+          import: () => import("/pages/a/b/c.js")
+        },
+        { // f[1]
+          path: "d",
+          import: () => import("/pages/d.js")
+        }
+      ]
+
+      const d /* dirs */ = [
+        { // d[0]
+          path: "a",
+          children: () => [d[1]]
+        },
+        { // d[1]
+          path: "a/b",
+          children: () => [f[0]]
+        }
+      ]
+
+      for (const g of [f, d])
+        for (const x of g) x.children = x.children ? x.children() : []
+
+      f.dirs = d
+
+      export default f
+    `,
+  tree: `
+      import f from '/out/routes'
+
+      const d = f.dirs
+
+      export default {
+        path: "",
+        isRoot: true,
+        children: [
+          d[0],
+          f[1]
+        ]
+      }
+    `,
+}
+test('deeply nested cached children are still listed in dirs', macro, {}, [
+  build => {
+    build.add(['a/b/c.js', { isDirectory: nope }])
+    build.add(['d.js', { isDirectory: nope }])
+    build.start()
+  },
+  deeply_nested_dirs_expected,
+  build => {
+    build.update(['d.js', { isDirectory: nope }])
+  },
+  deeply_nested_dirs_expected,
+])
