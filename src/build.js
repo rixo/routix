@@ -263,6 +263,9 @@ export default (options = {}) => {
     await _onIdle()
 
     if (errors.length > 0) {
+      if (errors.length === 1) {
+        throw errors[0]
+      }
       const err = new Error('')
       err.name = 'RoutixBuildError'
       err.errors = errors
