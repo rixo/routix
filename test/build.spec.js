@@ -916,3 +916,51 @@ test(
     },
   ]
 )
+
+test(
+  'exclude from tree',
+  macro,
+  {
+    parse: file => {
+      if (file.path === 'a/c') {
+        file.tree = false
+      }
+    },
+  },
+  [
+    build => {
+      build.add(['a', { isDirectory: yup }])
+      build.add(['a/b.js', { isDirectory: nope }])
+      build.add(['a/c.js', { isDirectory: nope }])
+      build.start()
+    },
+    {
+      routes: `
+      const f /* files */ = [
+        { // f[0]
+          path: "a/b",
+          import: () => import("/pages/a/b.js")
+        },
+        { // f[1]
+          path: "a/c",
+          import: () => import("/pages/a/c.js")
+        }
+      ]
+
+      const d /* dirs */ = [
+        { // d[0]
+          path: "a",
+          children: () => [f[0]]
+        }
+      ]
+
+      for (const g of [f, d])
+        for (const x of g) x.children = x.children ? x.children() : []
+
+      f.dirs = d
+
+      export default f
+    `,
+    },
+  ]
+)

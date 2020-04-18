@@ -5,6 +5,9 @@ const FILE = Symbol('routix.tree.FILE')
 
 const isFileNode = node => node[FILE] && node[FILE].isFile
 
+const notExcludedFromTree = ([, node]) =>
+  !node[FILE] || node[FILE].tree !== false
+
 const getNode = (from, steps) => {
   let node = from
   for (const step of steps) {
@@ -91,7 +94,7 @@ export default options => {
     // --- create children prop (if not cached) ---
 
     if (!cacheChildren || !file.children) {
-      const children = Object.entries(node)
+      const children = Object.entries(node).filter(notExcludedFromTree)
 
       await Promise.all(
         children.map(([seg, x]) => unfold(x, _path + seg + '/', dirs))
