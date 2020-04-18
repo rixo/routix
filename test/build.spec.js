@@ -845,6 +845,7 @@ const deeply_nested_dirs_expected = {
       }
     `,
 }
+
 test('deeply nested cached children are still listed in dirs', macro, {}, [
   build => {
     build.add(['a/b/c.js', { isDirectory: nope }])
@@ -857,3 +858,61 @@ test('deeply nested cached children are still listed in dirs', macro, {}, [
   },
   deeply_nested_dirs_expected,
 ])
+
+test(
+  'bailing out of rebuild',
+  macro,
+  () => {
+    let i = 0
+    const parse = file => {
+      if (i++ > 0) return false
+      return file
+    }
+    return { parse }
+  },
+  [
+    build => {
+      build.add(['a.js', { isDirectory: nope }])
+      build.start()
+    },
+    {
+      routes: `
+      const f /* files */ = [
+        { // f[0]
+          path: "a",
+          import: () => import("/pages/a.js")
+        }
+      ]
+
+      const d /* dirs */ = []
+
+      for (const g of [f, d])
+        for (const x of g) x.children = x.children ? x.children() : []
+
+      f.dirs = d
+
+      export default f
+    `,
+      tree: `
+      import f from '/out/routes'
+
+      const d = f.dirs
+
+      export default {
+        path: "",
+        isRoot: true,
+        children: [
+          f[0]
+        ]
+      }
+    `,
+    },
+    (build, files, t) => {
+      t._options.writeFile.hasBeenCalled(2)
+      build.update(['a.js', { isDirectory: nope }])
+    },
+    (build, files, t) => {
+      t._options.writeFile.hasBeenCalled(2)
+    },
+  ]
+)

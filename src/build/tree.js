@@ -66,7 +66,7 @@ export default options => {
 
   const emitDirs = (children, dirs) => {
     children.forEach(file => {
-      emitDirs(file.children)
+      emitDirs(file.children, dirs)
       if (!file.isFile && !file.isRoot) {
         dirs.push(file)
       }
@@ -82,7 +82,7 @@ export default options => {
         isFile: false,
         path: p,
       }
-      await parse(file, options)
+      await parse(file, null, options)
       node[FILE] = file
     }
 

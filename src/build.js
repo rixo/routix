@@ -143,8 +143,13 @@ export default (options = {}) => {
     resolvePrevious()
   }
 
-  const release = () => {
-    if (--latches === 0) {
+  const release = (canceled = false) => {
+    latches--
+    if (canceled) {
+      log.info('Bailing out')
+      return
+    }
+    if (latches === 0) {
       invalidate(Math.max(0, buildDebounce - (Date.now() - lastInvalidateTime)))
     }
   }
@@ -157,7 +162,16 @@ export default (options = {}) => {
     if (!started) return promise
     lastInvalidateTime = Date.now()
     latches++
-    return promise.finally(release)
+    let canceled = false
+    return promise
+      .then(result => {
+        canceled = result === false
+      })
+      .catch(err => {
+        canceled = true
+        throw err
+      })
+      .finally(() => release(canceled))
   }
 
   const input = () => {
@@ -180,9 +194,11 @@ export default (options = {}) => {
   }
 
   // NOTE parse is async, but we need add/update to
-  const _parse = async pathStats => {
+  const _parse = async (pathStats, previous) => {
     const [path] = pathStats
-    const file = await parse(pathStats)
+    const file = await parse(pathStats, previous)
+    // canceled
+    if (file === false) return false
     files[path] = file
     return file
   }
@@ -206,8 +222,9 @@ export default (options = {}) => {
     if (stats.isDirectory()) return
     const previous = files[path]
     invalidateUntil(
-      _parse(pathStats)
+      _parse(pathStats, previous)
         .then(file => {
+          if (file === false) return false
           builders.forEach(x => x.update(file, previous))
         })
         .catch(pushError)

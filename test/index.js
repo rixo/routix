@@ -21,7 +21,7 @@ export const buildMacro = builder => async (t, _options, ...steps) => {
 
   const dumbSort = ({ path: a }, { path: b }) => (a === b ? 0 : a < b ? -1 : 1)
 
-  const build = builder({
+  t._options = {
     // make tests deterministic
     sortFiles: dumbSort,
     sortDirs: dumbSort,
@@ -36,11 +36,13 @@ export const buildMacro = builder => async (t, _options, ...steps) => {
     },
     log: { info: () => {} },
     buildDebounce: 0,
-    writeFile: (name, contents) => {
+    writeFile: t.spy((name, contents) => {
       files[name] = contents
-    },
+    }),
     ...options,
-  })
+  }
+
+  const build = builder(t._options)
 
   let i = -1
   for (const step of steps.flat()) {
