@@ -99,6 +99,13 @@ export const parseOptions = ({
   parse = identity,
 
   /**
+   * Alternative way to provide parse (allow to preprocess options).
+   *
+   * @type {options => (item, previous) => parsed}
+   */
+  parser,
+
+  /**
    * @type {({ isFile: bool, path: string }) => object}
    *
    * item => props
@@ -127,35 +134,43 @@ export const parseOptions = ({
    * @type {function} Custom file writer: `async (name, contents) => {}`
    */
   writeFile,
-} = {}) => ({
-  watchDelay,
-  dir: dir && path.resolve(dir),
-  extensions: parseExtensions(extensions),
-  watch,
-  leadingSlash,
-  importDefault,
-  importProp,
-  parse,
-  format,
-  write: {
-    routes:
-      !write ||
-      write === true ||
-      !write.hasOwnProperty('routes') ||
-      write.routes === true
-        ? defaultRoutesPath()
-        : path.resolve(write.routes),
-    tree:
-      !write ||
-      write === true ||
-      !write.hasOwnProperty('tree') ||
-      write.tree === true
-        ? defaultTreePath()
-        : path.resolve(write.tree),
-  },
-  start,
-  // internal (for testing)
-  writeFile,
-  buildDebounce,
-  log,
-})
+} = {}) => {
+  const options = {
+    watchDelay,
+    dir: dir && path.resolve(dir),
+    extensions: parseExtensions(extensions),
+    watch,
+    leadingSlash,
+    importDefault,
+    importProp,
+    parse,
+    format,
+    write: {
+      routes:
+        !write ||
+        write === true ||
+        !write.hasOwnProperty('routes') ||
+        write.routes === true
+          ? defaultRoutesPath()
+          : path.resolve(write.routes),
+      tree:
+        !write ||
+        write === true ||
+        !write.hasOwnProperty('tree') ||
+        write.tree === true
+          ? defaultTreePath()
+          : path.resolve(write.tree),
+    },
+    start,
+    // internal (for testing)
+    writeFile,
+    buildDebounce,
+    log,
+  }
+
+  if (parser) {
+    options.parse = parser(options)
+  }
+
+  return options
+}
