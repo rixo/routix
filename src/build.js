@@ -149,7 +149,7 @@ export default (options = {}) => {
       log.info('Bailing out')
       return
     }
-    if (latches === 0) {
+    if (started && latches === 0) {
       invalidate(Math.max(0, buildDebounce - (Date.now() - lastInvalidateTime)))
     }
   }
@@ -159,7 +159,6 @@ export default (options = {}) => {
   // for at least the debounce delay (hene lastInvalidateTime), and wait even
   // longer if the given promise has not resolved at this point
   const invalidateUntil = promise => {
-    if (!started) return promise
     lastInvalidateTime = Date.now()
     latches++
     let canceled = false
