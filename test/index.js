@@ -29,6 +29,7 @@ export const buildMacro = builder => async (t, _options, ...steps) => {
 
     dir: '/pages',
     extensions: ['.js'],
+    merged: false,
     write: {
       routes: '/out/routes',
       tree: '/out/tree',

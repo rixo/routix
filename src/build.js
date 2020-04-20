@@ -15,6 +15,7 @@ const wait = delay => new Promise(resolve => setTimeout(resolve, delay))
 export default (options = {}) => {
   const {
     write: { routes: writeRoutes, tree: writeTree } = {},
+    merged = false,
     buildDebounce = 50,
     writeFile = (path, contents, encoding = 'utf8') =>
       fs.promises.writeFile(path, contents, encoding),
@@ -23,8 +24,11 @@ export default (options = {}) => {
 
   const files = {}
 
-  const tree = writeTree && Tree(options)
-  const routes = (writeRoutes || writeTree) && Routes(options)
+  const hasRoutes = writeRoutes || merged
+  const hasTree = writeTree || merged
+
+  const tree = hasTree && Tree(options)
+  const routes = (hasRoutes || hasTree) && Routes(options)
 
   const builders = [routes, tree].filter(Boolean)
 
@@ -71,24 +75,40 @@ export default (options = {}) => {
 
     const _routes = routes.generate(dirs)
 
+    const _tree = hasTree && tree.generate()
+
     const promises = []
 
-    if (writeRoutes) {
+    if (merged) {
       const contents = indent(0, '\n', [
-        `${_routes}`,
-        writeTree && `f.dirs = d`, // to avoid Rollup's mixed default/named exports warning
-        `export default f\n`,
+        _routes,
+        _tree,
+        `export { f as routes, tree }\n`,
       ])
       promises.push(writeFile(writeRoutes, contents))
-    }
-
-    if (writeTree) {
-      const _tree = tree.generate()
-      const prefix = writeRoutes
-        ? `import f from '${writeRoutes}'\n\nconst d = f.dirs`
-        : _routes
-      const contents = prefix + '\n\n' + _tree
-      promises.push(writeFile(writeTree, contents))
+    } else {
+      if (writeRoutes) {
+        const contents = indent(0, '\n', [
+          _routes,
+          writeTree && `f.dirs = d`, // to avoid Rollup's mixed default/named exports warning
+          `export default f\n`,
+        ])
+        promises.push(writeFile(writeRoutes, contents))
+      }
+      if (writeTree) {
+        // const prefix = writeRoutes
+        //   ? `import f from '${writeRoutes}'\n\nconst d = f.dirs`
+        //   : _routes
+        // const contents = prefix + '\n\n' + _tree
+        const contents = indent(0, '\n', [
+          writeRoutes
+            ? `import f from '${writeRoutes}'\n\nconst d = f.dirs`
+            : _routes,
+          _tree,
+          'export default tree',
+        ])
+        promises.push(writeFile(writeTree, contents))
+      }
     }
 
     return Promise.all(promises)

@@ -63,7 +63,7 @@ test('basic', macro, {}, [
 
       const d = f.dirs
 
-      export default {
+      const tree = {
         path: "",
         isRoot: true,
         children: [
@@ -71,6 +71,8 @@ test('basic', macro, {}, [
           d[0]
         ]
       }
+
+      export default tree
     `,
   },
 ])
@@ -103,13 +105,15 @@ test('importProp', macro, { importProp: 'component' }, [
 
       const d = f.dirs
 
-      export default {
+      const tree = {
         path: "",
         isRoot: true,
         children: [
           f[0]
         ]
       }
+
+      export default tree
     `,
   },
 ])
@@ -144,13 +148,15 @@ test('importDefault', macro, { importDefault: true }, [
 
       const d = f.dirs
 
-      export default {
+      const tree = {
         path: "",
         isRoot: true,
         children: [
           f[0]
         ]
       }
+
+      export default tree
     `,
   },
 ])
@@ -194,7 +200,7 @@ test.skip('watch', macro, { watch: true }, [
 
       const d = f.dirs
 
-      export default {
+      const tree = {
         path: "",
         isRoot: true,
         children: [
@@ -202,6 +208,8 @@ test.skip('watch', macro, { watch: true }, [
           d[0]
         ]
       }
+
+      export default tree
     `,
   },
   build => {
@@ -243,7 +251,7 @@ test.skip('watch', macro, { watch: true }, [
 
       const d = f.dirs
 
-      export default {
+      const tree = {
         path: "",
         isRoot: true,
         children: [
@@ -251,6 +259,8 @@ test.skip('watch', macro, { watch: true }, [
           d[0]
         ]
       }
+
+      export default tree
     `,
   },
   build => {

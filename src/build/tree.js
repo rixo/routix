@@ -36,7 +36,7 @@ const getNodes = (from, steps) => {
 
 const _tree = (format, rootPath, root) =>
   indent(0, '', [
-    `export default {`,
+    `const tree = {`,
     indent(1, ',', [
       `path: ${JSON.stringify(rootPath)}`,
       `isRoot: true`,

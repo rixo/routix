@@ -49,6 +49,14 @@ export const parseOptions = ({
   /**
    * @type {bool}
    *
+   * Whether to write a single `routes.js` file, or merge routes and tree in the
+   * same file.
+   */
+  merged = true,
+
+  /**
+   * @type {bool}
+   *
    * Whether to watch FS after initial build.
    *
    * NOTE When used in Rollup, this option is set automatically by the plugin,
@@ -145,6 +153,7 @@ export const parseOptions = ({
     importProp,
     parse,
     format,
+    merged,
     write: {
       routes:
         !write ||
@@ -154,12 +163,13 @@ export const parseOptions = ({
           ? defaultRoutesPath()
           : path.resolve(write.routes),
       tree:
-        !write ||
+        !merged &&
+        (!write ||
         write === true ||
         !write.hasOwnProperty('tree') ||
         write.tree === true
           ? defaultTreePath()
-          : path.resolve(write.tree),
+          : path.resolve(write.tree)),
     },
     start,
     // internal (for testing)
