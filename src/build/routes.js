@@ -6,7 +6,12 @@ import { indent, _ref } from './util'
 const _ = JSON.stringify
 
 const _props = (props = {}) =>
-  Object.entries(props).map(([prop, value]) => `${_(prop)}: ${_(value)}`)
+  // Object.entries(props).map(([prop, value]) => `${_(prop)}: ${_(value)}`)
+  Object.entries(props).flatMap(([prop, value]) => {
+    const lines = JSON.stringify(value, false, 2).split('\n')
+    const first = lines.shift()
+    return [`${_(prop)}: ${first}`, ...lines.map(x => '    ' + x)].join('\n')
+  })
 
 const _children = children =>
   // NOTE children not here when tree:false
