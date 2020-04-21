@@ -15,10 +15,11 @@ const wait = delay => new Promise(resolve => setTimeout(resolve, delay))
 
 export default (options = {}) => {
   const {
+    dir,
     write: { routes: writeRoutes, tree: writeTree, extras: writeExtras } = {},
     merged = false,
     buildDebounce = 50,
-    writeFile = (path, contents, encoding = 'utf8') =>
+    writeFile: _writeFile = (path, contents, encoding = 'utf8') =>
       fs.promises.writeFile(path, contents, encoding),
     log = console,
   } = options
@@ -57,16 +58,19 @@ export default (options = {}) => {
     errors.length > 0 ||
     (started && timeout === null && !scheduled && !running && latches === 0)
 
-  const targetsDisplayNames = [writeRoutes, writeTree, writeExtras]
-    .filter(Boolean)
-    .map(x => path.basename(x))
-    .join(', ')
-
-  const logBuildSuccess = () => {
+  const logBuildSuccess = args => {
+    if (!args.length) {
+      log.info('Nothing changes')
+      return
+    }
+    const targetsDisplayNames = args.flat().join(', ')
     const duration = now() - startTime
     startTime = null
     log.info(`Written: ${targetsDisplayNames} (${duration}ms)`)
   }
+
+  const writeFile = (...args) =>
+    Promise.resolve(_writeFile(...args)).then(() => path.basename(args[0]))
 
   const build = async () => {
     if (!routes && !tree) return
@@ -114,10 +118,6 @@ export default (options = {}) => {
     }
 
     return Promise.all(promises)
-      .then(logBuildSuccess)
-      .finally(() => {
-        running = false
-      })
   }
 
   const buildExtras = async () => {
@@ -147,8 +147,12 @@ export default (options = {}) => {
           [rebuild && build(), rebuildExtras && buildExtras()].filter(Boolean)
         )
       })
+      .then(logBuildSuccess)
       .catch(err => {
         errors.push(err)
+      })
+      .finally(() => {
+        running = false
       })
     return buildPromise
   }
