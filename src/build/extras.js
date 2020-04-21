@@ -1,3 +1,5 @@
+import { _ } from './util'
+
 const _extras = extras => 'const extras = ' + JSON.stringify(extras, false, 2)
 
 export default options => {
@@ -9,7 +11,10 @@ export default options => {
     extras[getId(file)] = file.extra
   }
 
-  const update = add
+  const update = file => {
+    if (_(extras[getId(file)]) === _(file.extra)) return false
+    extras[getId(file)] = file.extra
+  }
 
   const remove = file => {
     delete extras[getId(file)]

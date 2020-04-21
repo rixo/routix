@@ -1110,22 +1110,34 @@ test(
 test(
   'extras',
   macro,
-  () => {
-    let i = 0
+  t => {
+    t._i = 0
     const parse = file => {
-      if (i === 2) {
-        file.rebuildExtras = false
-      } else {
-        i++
-      }
+      file.rebuildExtras = t._rebuildExtras
       file.rebuild = false
-      file.extra = { i }
+      file.extra = { i: t._i }
     }
     return { write: { extras: true }, parse }
   },
   build => {
     build.add(['a.js', { isDirectory: nope }])
     build.start()
+  },
+  {
+    extras: `
+      const extras = {
+        "a": {
+          "i": 0
+        }
+      }
+
+      export default extras
+    `,
+  },
+  (build, files, t) => {
+    t._options.writeFile.hasBeenCalled(3)
+    t._i = 1
+    build.update(['a.js', { isDirectory: nope }])
   },
   {
     extras: `
@@ -1139,7 +1151,23 @@ test(
     `,
   },
   (build, files, t) => {
-    t._options.writeFile.hasBeenCalled(3)
+    t._options.writeFile.hasBeenCalled(4)
+    build.update(['a.js', { isDirectory: nope }])
+  },
+  {
+    extras: `
+      const extras = {
+        "a": {
+          "i": 1
+        }
+      }
+
+      export default extras
+    `,
+  },
+  (build, files, t) => {
+    t._options.writeFile.hasBeenCalled(4)
+    t._i = 2
     build.update(['a.js', { isDirectory: nope }])
   },
   {
@@ -1154,7 +1182,9 @@ test(
     `,
   },
   (build, files, t) => {
-    t._options.writeFile.hasBeenCalled(4)
+    t._options.writeFile.hasBeenCalled(5)
+    t._i = 3
+    t._rebuildExtras = false
     build.update(['a.js', { isDirectory: nope }])
   },
   {
@@ -1169,7 +1199,7 @@ test(
     `,
   },
   (build, files, t) => {
-    t._options.writeFile.hasBeenCalled(4)
+    t._options.writeFile.hasBeenCalled(5)
     build.remove(['a.js', { isDirectory: nope }])
   },
   {
