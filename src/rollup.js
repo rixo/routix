@@ -77,6 +77,10 @@ const createPlugin = options => {
   return {
     name: 'routix',
 
+    $$: {
+      get: (...args) => build.get(...args),
+    },
+
     // prevent build from starting until Routix has finished generating
     // routes.js (or Rollup would do a useless build with stalled routes.js)
     //

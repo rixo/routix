@@ -341,5 +341,7 @@ export default (options = {}) => {
 
   const onChange = () => new Promise(resolve => changeListeners.push(resolve))
 
-  return { start, add, update, remove, onChange, onIdle }
+  const get = filename => files[path.relative(dir, filename)]
+
+  return { start, add, update, remove, onChange, onIdle, get }
 }
