@@ -4,6 +4,7 @@ import parser from '@/parse'
 import { Deferred, noop } from '@/util'
 import Tree from './build/tree'
 import Routes from './build/routes'
+import Extras from './build/extras'
 import { indent } from './build/util'
 
 const now = Date.now
@@ -14,7 +15,7 @@ const wait = delay => new Promise(resolve => setTimeout(resolve, delay))
 
 export default (options = {}) => {
   const {
-    write: { routes: writeRoutes, tree: writeTree } = {},
+    write: { routes: writeRoutes, tree: writeTree, extras: writeExtras } = {},
     merged = false,
     buildDebounce = 50,
     writeFile = (path, contents, encoding = 'utf8') =>
@@ -26,9 +27,11 @@ export default (options = {}) => {
 
   const hasRoutes = writeRoutes || merged
   const hasTree = writeTree || merged
+  const hasExtras = !!writeExtras
 
   const tree = hasTree && Tree(options)
   const routes = (hasRoutes || hasTree) && Routes(options)
+  const extras = hasExtras && Extras(options)
 
   const builders = [routes, tree].filter(Boolean)
 
@@ -39,6 +42,7 @@ export default (options = {}) => {
   let timeout = null
   let scheduled = false
   let running = false
+  const invalidated = { build: false, extras: false }
   const startDeferred = Deferred()
   let buildPromise = Promise.resolve()
   // a promise that resolves when we arrive to a point when we might be
@@ -53,7 +57,7 @@ export default (options = {}) => {
     errors.length > 0 ||
     (started && timeout === null && !scheduled && !running && latches === 0)
 
-  const targetsDisplayNames = [writeRoutes, writeTree]
+  const targetsDisplayNames = [writeRoutes, writeTree, writeExtras]
     .filter(Boolean)
     .map(x => path.basename(x))
     .join(', ')
@@ -65,9 +69,7 @@ export default (options = {}) => {
   }
 
   const build = async () => {
-    if (!routes && !tree) {
-      return Promise.resolve()
-    }
+    if (!routes && !tree) return
 
     running = true
 
@@ -118,6 +120,20 @@ export default (options = {}) => {
       })
   }
 
+  const buildExtras = async () => {
+    if (!extras) return
+
+    const _extras = extras.generate()
+
+    const contents = indent(0, '\n', [
+      //
+      _extras,
+      'export default extras',
+    ])
+
+    return writeFile(writeExtras, contents)
+  }
+
   const schedule = () => {
     timeout = null
     if (scheduled) return
@@ -125,7 +141,11 @@ export default (options = {}) => {
     buildPromise = buildPromise
       .then(() => {
         scheduled = false
-        return build()
+        const { build: rebuild, extras: rebuildExtras } = invalidated
+        invalidated.build = invalidated.extras = false
+        return Promise.all(
+          [rebuild && build(), rebuildExtras && buildExtras()].filter(Boolean)
+        )
       })
       .catch(err => {
         errors.push(err)
@@ -181,16 +201,7 @@ export default (options = {}) => {
   const invalidateUntil = promise => {
     lastInvalidateTime = Date.now()
     latches++
-    let canceled = false
-    return promise
-      .then(result => {
-        canceled = result === false
-      })
-      .catch(err => {
-        canceled = true
-        throw err
-      })
-      .finally(() => release(canceled))
+    return promise.finally(release)
   }
 
   const input = () => {
@@ -229,6 +240,10 @@ export default (options = {}) => {
     invalidateUntil(
       _parse(pathStats)
         .then(file => {
+          if (extras && extras.add(file) !== false) {
+            invalidated.extras = true
+          }
+          invalidated.build = true
           builders.forEach(x => x.add(file))
         })
         .catch(pushError)
@@ -244,6 +259,18 @@ export default (options = {}) => {
       _parse(pathStats, previous)
         .then(file => {
           if (file === false) return false
+
+          if (
+            extras &&
+            file.rebuildExtras !== false &&
+            extras.update(file, previous) !== false
+          ) {
+            invalidated.extras = true
+          }
+
+          if (file.rebuild === false) return false
+
+          invalidated.build = true
           builders.forEach(x => x.update(file, previous))
         })
         .catch(pushError)
@@ -256,8 +283,16 @@ export default (options = {}) => {
       if (stats.isDirectory()) return
       const file = files[path]
       if (!file) return
+
       delete files[path]
+
+      if (extras && extras.remove(file) !== false) {
+        invalidated.extras = true
+      }
+
+      invalidated.build = true
       builders.forEach(x => x.remove(file))
+
       invalidate()
     } catch (err) {
       pushError(err)

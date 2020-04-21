@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { identity } from '@/util'
+import { identity, stringHashCode } from '@/util'
 
 const parseFile = options => async ([relative, stats], previous) => {
   const { dir, extensions, leadingSlash, parse = identity } = options
@@ -18,6 +18,8 @@ const parseFile = options => async ([relative, stats], previous) => {
   } else {
     item.path = relative
   }
+
+  item.id = stringHashCode(item.isFile ? item.absolute : `d:${item.path}`)
 
   if (leadingSlash) {
     item.path = '/' + item.path

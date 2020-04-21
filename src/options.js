@@ -55,6 +55,11 @@ export const parseOptions = ({
   merged = true,
 
   /**
+   * @type {bool} Adds an `id` from a hash of absolute path.
+   */
+  id = true,
+
+  /**
    * @type {bool}
    *
    * Whether to watch FS after initial build.
@@ -144,6 +149,7 @@ export const parseOptions = ({
   writeFile,
 } = {}) => {
   const options = {
+    id,
     watchDelay,
     dir: dir && path.resolve(dir),
     extensions: parseExtensions(extensions),
@@ -170,6 +176,7 @@ export const parseOptions = ({
         write.tree === true
           ? defaultTreePath()
           : path.resolve(write.tree)),
+      extras: write && write.extras,
     },
     start,
     // internal (for testing)

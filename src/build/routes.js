@@ -20,12 +20,13 @@ const _children = children =>
 
 const _file = (
   props,
-  { importDefault, importProp },
-  { i, absolute, path, children }
+  { id: withId, importDefault, importProp },
+  { i, id, absolute, path, children }
 ) =>
   indent(1, '', [
     `{ // f[${i}]`,
     indent(2, ',', [
+      withId && `id: ${_(id)}`,
       `path: ${_(path)}`,
       `${importProp}: () => import(${_(absolute)})${
         importDefault ? '.then(dft)' : ''
@@ -36,14 +37,19 @@ const _file = (
     '}',
   ])
 
-const _dir = (props, { i, path, children }) =>
+const _dir = (props, { id: withId }, { i, id, path, children }) =>
   indent(1, '', [
     `{ // d[${i}]`,
-    indent(2, ',', [`path: ${_(path)}`, ..._props(props), _children(children)]),
+    indent(2, ',', [
+      withId && `id: ${_(id)}`,
+      `path: ${_(path)}`,
+      ..._props(props),
+      _children(children),
+    ]),
     '}',
   ])
 
-const _generate = ({ format, importDefault, importProp }, files, dirs) =>
+const _generate = ({ id, format, importDefault, importProp }, files, dirs) =>
   indent(0, '\n', [
     importDefault && `const dft = m => m.default`,
 
@@ -52,14 +58,14 @@ const _generate = ({ format, importDefault, importProp }, files, dirs) =>
       indent(
         1,
         ','
-      )(files.map(x => _file(format(x), { importDefault, importProp }, x))),
+      )(files.map(x => _file(format(x), { id, importDefault, importProp }, x))),
       ']',
     ]),
 
     dirs &&
       indent.collapse(0, '', [
         'const d /* dirs */ = [',
-        indent(1, ',')(dirs.map(x => _dir(format(x), x))),
+        indent(1, ',')(dirs.map(x => _dir(format(x), { id }, x))),
         ']',
       ]),
 

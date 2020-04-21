@@ -1,4 +1,5 @@
-import { test, buildMacro, _routes, _tree } from '.'
+import { test, buildMacro } from '.'
+// import { _routes, _tree } from '.'
 
 import builder from '../src/build'
 
@@ -906,6 +907,66 @@ test(
     },
     {
       routes: `
+        const f /* files */ = [
+          { // f[0]
+            path: "a",
+            import: () => import("/pages/a.js")
+          }
+        ]
+
+        const d /* dirs */ = []
+
+        for (const g of [f, d])
+          for (const x of g) x.children = x.children ? x.children() : []
+
+        f.dirs = d
+
+        export default f
+      `,
+      tree: `
+        import f from '/out/routes'
+
+        const d = f.dirs
+
+        const tree = {
+          path: "",
+          isRoot: true,
+          children: [
+            f[0]
+          ]
+        }
+
+        export default tree
+      `,
+    },
+    (build, files, t) => {
+      t._options.writeFile.hasBeenCalled(2)
+      build.update(['a.js', { isDirectory: nope }])
+    },
+    (build, files, t) => {
+      t._options.writeFile.hasBeenCalled(2)
+    },
+  ]
+)
+
+test(
+  'item.rebuild === false',
+  macro,
+  () => {
+    let i = 0
+    const parse = file => {
+      if (i++ > 0) file.rebuild = false
+      return file
+    }
+    return { parse }
+  },
+  [
+    build => {
+      build.add(['a.js', { isDirectory: nope }])
+      build.start()
+    },
+    {
+      routes: `
       const f /* files */ = [
         { // f[0]
           path: "a",
@@ -1044,4 +1105,78 @@ test(
       `,
     },
   ]
+)
+
+test(
+  'extras',
+  macro,
+  () => {
+    let i = 0
+    const parse = file => {
+      if (i === 2) {
+        file.rebuildExtras = false
+      } else {
+        i++
+      }
+      file.rebuild = false
+      file.extra = { i }
+    }
+    return { write: { extras: true }, parse }
+  },
+  build => {
+    build.add(['a.js', { isDirectory: nope }])
+    build.start()
+  },
+  {
+    extras: `
+      const extras = {
+        "a": {
+          "i": 1
+        }
+      }
+
+      export default extras
+    `,
+  },
+  (build, files, t) => {
+    t._options.writeFile.hasBeenCalled(3)
+    build.update(['a.js', { isDirectory: nope }])
+  },
+  {
+    extras: `
+      const extras = {
+        "a": {
+          "i": 2
+        }
+      }
+
+      export default extras
+    `,
+  },
+  (build, files, t) => {
+    t._options.writeFile.hasBeenCalled(4)
+    build.update(['a.js', { isDirectory: nope }])
+  },
+  {
+    extras: `
+      const extras = {
+        "a": {
+          "i": 2
+        }
+      }
+
+      export default extras
+    `,
+  },
+  (build, files, t) => {
+    t._options.writeFile.hasBeenCalled(4)
+    build.remove(['a.js', { isDirectory: nope }])
+  },
+  {
+    extras: `
+      const extras = {}
+
+      export default extras
+    `,
+  }
 )

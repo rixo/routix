@@ -34,6 +34,7 @@ export const buildMacro = builder => async (t, _options, ...steps) => {
       routes: '/out/routes',
       tree: '/out/tree',
       ...write,
+      ...(write && write.extras === true && { extras: '/out/extras' }),
     },
     log: { info: () => {} },
     buildDebounce: 0,
@@ -65,6 +66,11 @@ export const buildMacro = builder => async (t, _options, ...steps) => {
         const actual = files['/out/tree'] && files['/out/tree'].trim()
         const expected = step.tree && dedent(step.tree)
         t.eq(actual, expected, `tree #${i}`)
+      }
+      if (step.hasOwnProperty('extras')) {
+        const actual = files['/out/extras'] && files['/out/extras'].trim()
+        const expected = step.extras && dedent(step.extras)
+        t.eq(actual, expected, `extras #${i}`)
       }
     }
   }
