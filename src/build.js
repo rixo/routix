@@ -26,18 +26,18 @@ export default (options = {}) => {
 
   const files = {}
 
+  const parse = parser(options)
+  let errors = []
+
   const hasRoutes = writeRoutes || merged
   const hasTree = writeTree || merged
   const hasExtras = !!writeExtras
 
-  const tree = hasTree && Tree(options)
+  const tree = hasTree && Tree(options, { parse })
   const routes = (hasRoutes || hasTree) && Routes(options)
   const extras = hasExtras && Extras(options)
 
   const builders = [routes, tree].filter(Boolean)
-
-  const parse = parser(options)
-  let errors = []
 
   let started = false
   let timeout = null
@@ -89,15 +89,14 @@ export default (options = {}) => {
       const contents = indent(0, '\n', [
         _routes,
         _tree,
-        `export { f as routes, tree }\n`,
+        `export { f as files, d as dirs, routes, tree }\n`,
       ])
       promises.push(writeFile(writeRoutes, contents))
     } else {
       if (writeRoutes) {
         const contents = indent(0, '\n', [
           _routes,
-          writeTree && `f.dirs = d`, // to avoid Rollup's mixed default/named exports warning
-          `export default f\n`,
+          `export { f as files,${dirs ? ` d as dirs,` : ''} routes }\n`,
         ])
         promises.push(writeFile(writeRoutes, contents))
       }
@@ -108,7 +107,7 @@ export default (options = {}) => {
         // const contents = prefix + '\n\n' + _tree
         const contents = indent(0, '\n', [
           writeRoutes
-            ? `import f from '${writeRoutes}'\n\nconst d = f.dirs`
+            ? `import { files as f, dirs as d } from '${writeRoutes}'`
             : _routes,
           _tree,
           'export default tree',

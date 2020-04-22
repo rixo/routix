@@ -1,27 +1,30 @@
 import * as path from 'path'
 import { identity, stringHashCode } from '@/util'
 
-const parseFile = options => async ([relative, stats], previous) => {
-  const { dir, extensions, leadingSlash, parse = identity } = options
-
-  const item = {
-    relative,
-    absolute: path.join(dir, relative),
-    isFile: !stats.isDirectory(),
-  }
-
-  if (item.isFile) {
+const parseItem = ({ dir, extensions }, arg) => {
+  if (Array.isArray(arg)) {
+    const [relative] = arg
     const ext =
       extensions.find(x => relative.endsWith(x)) || path.extname(relative)
-    item.extension = ext
-    item.path = ext ? relative.slice(0, -ext.length) : relative
-  } else {
-    item.path = relative
+    return {
+      isFile: true,
+      relative,
+      absolute: path.join(dir, relative),
+      extension: ext,
+      path: ext ? relative.slice(0, -ext.length) : relative,
+    }
   }
+  return arg
+}
+
+const parseFile = options => async (arg, previous) => {
+  const { leadingSlash, parse = identity } = options
+
+  const item = parseItem(options, arg)
 
   item.id = stringHashCode(item.isFile ? item.absolute : `d:${item.path}`)
 
-  if (leadingSlash) {
+  if (leadingSlash && item.path[0] !== '/') {
     item.path = '/' + item.path
   }
 

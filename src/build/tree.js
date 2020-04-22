@@ -1,4 +1,4 @@
-import { noop, identity } from '@/util'
+import { noop } from '@/util'
 import { indent, _ref, _props } from './util'
 
 const FILE = Symbol('routix.tree.FILE')
@@ -52,10 +52,9 @@ const _tree = (format, rootPath, root) =>
     '}',
   ])
 
-export default options => {
+export default (options, { parse }) => {
   const {
     leadingSlash,
-    parse = identity,
     format = noop,
     cacheChildren = true,
     sortChildren = false,

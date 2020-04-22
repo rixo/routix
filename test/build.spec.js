@@ -37,14 +37,12 @@ test('basic', macro, {}, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -106,7 +104,9 @@ test('only routes', macro, [
         }
       ]
 
-      export default f
+      const routes = [...f, ...d]
+
+      export { f as files, d as dirs, routes }
     `,
     tree: undefined,
   },
@@ -141,6 +141,8 @@ test('only tree', macro, { write: { routes: false } }, [
 
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
+
+      const routes = [...f, ...d]
 
       const tree = {
         path: "",
@@ -185,14 +187,12 @@ test('custom root', macro, { parse: parseIndex }, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -239,9 +239,9 @@ test('nesting', macro, { parse: parseVirtual }, [
     for (const g of [f, d])
       for (const x of g) x.children = x.children ? x.children() : []
 
-    f.dirs = d
+    const routes = [...f, ...d]
 
-    export default f
+    export { f as files, d as dirs, routes }
   `,
   build => {
     build.remove(['foo/bar.baz.js', { isDirectory: nope }])
@@ -254,9 +254,9 @@ test('nesting', macro, { parse: parseVirtual }, [
     for (const g of [f, d])
       for (const x of g) x.children = x.children ? x.children() : []
 
-    f.dirs = d
+    const routes = [...f, ...d]
 
-    export default f
+    export { f as files, d as dirs, routes }
   `,
 ])
 
@@ -269,9 +269,7 @@ test('delete nested', macro, {}, [
   },
   {
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -306,9 +304,9 @@ test('delete nested', macro, {}, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
   },
   build => {
@@ -328,14 +326,12 @@ test('delete nested', macro, {}, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -374,14 +370,12 @@ test('delete nested', macro, {}, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -427,14 +421,12 @@ test('adding to existing dir', macro, {}, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -478,14 +470,12 @@ test('adding to existing dir', macro, {}, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -521,9 +511,7 @@ test('virtual paths', macro, { parse: parseVirtual }, [
   },
   {
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -561,9 +549,9 @@ test('virtual paths', macro, { parse: parseVirtual }, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
   },
   build => {
@@ -572,9 +560,7 @@ test('virtual paths', macro, { parse: parseVirtual }, [
   },
   {
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -608,9 +594,9 @@ test('virtual paths', macro, { parse: parseVirtual }, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
   },
 ])
@@ -618,47 +604,45 @@ test('virtual paths', macro, { parse: parseVirtual }, [
 {
   const expected0 = {
     routes: `
-        const f /* files */ = [
-          { // f[0]
-            path: "a/b",
-            import: () => import("/pages/a/b.js"),
-            children: () => [f[1]]
-          },
-          { // f[1]
-            path: "a/b/c",
-            import: () => import("/pages/a.b.c.js")
-          }
-        ]
-
-        const d /* dirs */ = [
-          { // d[0]
-            path: "a",
-            children: () => [f[0]]
-          }
-        ]
-
-        for (const g of [f, d])
-          for (const x of g) x.children = x.children ? x.children() : []
-
-        f.dirs = d
-
-        export default f
-      `,
-    tree: `
-        import f from '/out/routes'
-
-        const d = f.dirs
-
-        const tree = {
-          path: "",
-          isRoot: true,
-          children: [
-            d[0]
-          ]
+      const f /* files */ = [
+        { // f[0]
+          path: "a/b",
+          import: () => import("/pages/a/b.js"),
+          children: () => [f[1]]
+        },
+        { // f[1]
+          path: "a/b/c",
+          import: () => import("/pages/a.b.c.js")
         }
+      ]
 
-        export default tree
-      `,
+      const d /* dirs */ = [
+        { // d[0]
+          path: "a",
+          children: () => [f[0]]
+        }
+      ]
+
+      for (const g of [f, d])
+        for (const x of g) x.children = x.children ? x.children() : []
+
+      const routes = [...f, ...d]
+
+      export { f as files, d as dirs, routes }
+    `,
+    tree: `
+      import { files as f, dirs as d } from '/out/routes'
+
+      const tree = {
+        path: "",
+        isRoot: true,
+        children: [
+          d[0]
+        ]
+      }
+
+      export default tree
+    `,
   }
 
   test('virtual path shadowing existing file', macro, { parse: parseVirtual }, [
@@ -699,14 +683,12 @@ test('virtual paths', macro, { parse: parseVirtual }, [
         for (const g of [f, d])
           for (const x of g) x.children = x.children ? x.children() : []
 
-        f.dirs = d
+        const routes = [...f, ...d]
 
-        export default f
+        export { f as files, d as dirs, routes }
       `,
       tree: `
-        import f from '/out/routes'
-
-        const d = f.dirs
+        import { files as f, dirs as d } from '/out/routes'
 
         const tree = {
           path: "",
@@ -746,84 +728,80 @@ test(
   },
   {
     routes: `
-        const f /* files */ = [
-          { // f[0]
-            path: "a/foo",
-            import: () => import("/pages/foo.js")
-          }
-        ]
-
-        const d /* dirs */ = [
-          { // d[0]
-            path: "a",
-            children: () => [f[0]]
-          }
-        ]
-
-        for (const g of [f, d])
-          for (const x of g) x.children = x.children ? x.children() : []
-
-        f.dirs = d
-
-        export default f
-      `,
-    tree: `
-        import f from '/out/routes'
-
-        const d = f.dirs
-
-        const tree = {
-          path: "",
-          isRoot: true,
-          children: [
-            d[0]
-          ]
+      const f /* files */ = [
+        { // f[0]
+          path: "a/foo",
+          import: () => import("/pages/foo.js")
         }
+      ]
 
-        export default tree
-      `,
+      const d /* dirs */ = [
+        { // d[0]
+          path: "a",
+          children: () => [f[0]]
+        }
+      ]
+
+      for (const g of [f, d])
+        for (const x of g) x.children = x.children ? x.children() : []
+
+      const routes = [...f, ...d]
+
+      export { f as files, d as dirs, routes }
+    `,
+    tree: `
+      import { files as f, dirs as d } from '/out/routes'
+
+      const tree = {
+        path: "",
+        isRoot: true,
+        children: [
+          d[0]
+        ]
+      }
+
+      export default tree
+    `,
   },
   build => {
     build.update(['foo.js', { isDirectory: nope }])
   },
   {
     routes: `
-        const f /* files */ = [
-          { // f[0]
-            path: "b/foo",
-            import: () => import("/pages/foo.js")
-          }
-        ]
-
-        const d /* dirs */ = [
-          { // d[0]
-            path: "b",
-            children: () => [f[0]]
-          }
-        ]
-
-        for (const g of [f, d])
-          for (const x of g) x.children = x.children ? x.children() : []
-
-        f.dirs = d
-
-        export default f
-      `,
-    tree: `
-        import f from '/out/routes'
-
-        const d = f.dirs
-
-        const tree = {
-          path: "",
-          isRoot: true,
-          children: [
-            d[0]
-          ]
+      const f /* files */ = [
+        { // f[0]
+          path: "b/foo",
+          import: () => import("/pages/foo.js")
         }
+      ]
 
-        export default tree
-      `,
+      const d /* dirs */ = [
+        { // d[0]
+          path: "b",
+          children: () => [f[0]]
+        }
+      ]
+
+      for (const g of [f, d])
+        for (const x of g) x.children = x.children ? x.children() : []
+
+      const routes = [...f, ...d]
+
+      export { f as files, d as dirs, routes }
+    `,
+    tree: `
+      import { files as f, dirs as d } from '/out/routes'
+
+      const tree = {
+        path: "",
+        isRoot: true,
+        children: [
+          d[0]
+        ]
+      }
+
+      export default tree
+    `,
   }
 )
 
@@ -854,14 +832,12 @@ const deeply_nested_dirs_expected = {
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
   tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -919,14 +895,12 @@ test(
         for (const g of [f, d])
           for (const x of g) x.children = x.children ? x.children() : []
 
-        f.dirs = d
+        const routes = [...f, ...d]
 
-        export default f
+        export { f as files, d as dirs, routes }
       `,
       tree: `
-        import f from '/out/routes'
-
-        const d = f.dirs
+        import { files as f, dirs as d } from '/out/routes'
 
         const tree = {
           path: "",
@@ -967,37 +941,35 @@ test(
     },
     {
       routes: `
-      const f /* files */ = [
-        { // f[0]
-          path: "a",
-          import: () => import("/pages/a.js")
-        }
-      ]
-
-      const d /* dirs */ = []
-
-      for (const g of [f, d])
-        for (const x of g) x.children = x.children ? x.children() : []
-
-      f.dirs = d
-
-      export default f
-    `,
-      tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
-
-      const tree = {
-        path: "",
-        isRoot: true,
-        children: [
-          f[0]
+        const f /* files */ = [
+          { // f[0]
+            path: "a",
+            import: () => import("/pages/a.js")
+          }
         ]
-      }
 
-      export default tree
-    `,
+        const d /* dirs */ = []
+
+        for (const g of [f, d])
+          for (const x of g) x.children = x.children ? x.children() : []
+
+        const routes = [...f, ...d]
+
+        export { f as files, d as dirs, routes }
+      `,
+      tree: `
+        import { files as f, dirs as d } from '/out/routes'
+
+        const tree = {
+          path: "",
+          isRoot: true,
+          children: [
+            f[0]
+          ]
+        }
+
+        export default tree
+      `,
     },
     (build, files, t) => {
       t._options.writeFile.hasBeenCalled(2)
@@ -1049,9 +1021,9 @@ test(
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
     },
   ]
@@ -1092,6 +1064,8 @@ test(
         for (const g of [f, d])
           for (const x of g) x.children = x.children ? x.children() : []
 
+        const routes = [...f, ...d]
+
         const tree = {
           path: "",
           isRoot: true,
@@ -1101,7 +1075,7 @@ test(
           ]
         }
 
-        export { f as routes, tree }
+        export { f as files, d as dirs, routes, tree }
       `,
     },
   ]

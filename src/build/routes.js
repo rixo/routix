@@ -76,6 +76,8 @@ const _generate = ({ id, format, importDefault, importProp }, files, dirs) =>
           'for (const x of g) x.children = x.children ? x.children() : []',
         ]),
       ]),
+
+    dirs ? 'const routes = [...f, ...d]' : 'const routes = files',
   ])
 
 const addIndex = (x, i) => (x.i = i)

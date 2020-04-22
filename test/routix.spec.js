@@ -54,14 +54,12 @@ test('basic', macro, {}, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -96,14 +94,12 @@ test('importProp', macro, { importProp: 'component' }, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -139,14 +135,12 @@ test('importDefault', macro, { importDefault: true }, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -191,14 +185,12 @@ test.skip('watch', macro, { watch: true }, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
@@ -242,14 +234,12 @@ test.skip('watch', macro, { watch: true }, [
       for (const g of [f, d])
         for (const x of g) x.children = x.children ? x.children() : []
 
-      f.dirs = d
+      const routes = [...f, ...d]
 
-      export default f
+      export { f as files, d as dirs, routes }
     `,
     tree: `
-      import f from '/out/routes'
-
-      const d = f.dirs
+      import { files as f, dirs as d } from '/out/routes'
 
       const tree = {
         path: "",
