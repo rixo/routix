@@ -43,7 +43,9 @@ export default (options = {}) => {
   let timeout = null
   let scheduled = false
   let running = false
-  const invalidated = { build: false, extras: false }
+  // NOTE start invalidated to ensure everything will be built on first run,
+  // even if there are no target files
+  const invalidated = { build: true, extras: true }
   const startDeferred = Deferred()
   let buildPromise = Promise.resolve()
   // a promise that resolves when we arrive to a point when we might be

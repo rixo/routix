@@ -1184,3 +1184,39 @@ test(
     `,
   }
 )
+
+test('no target files', macro, { write: { extras: true } }, [
+  build => {
+    build.start()
+  },
+  {
+    routes: `
+      const f /* files */ = []
+
+      const d /* dirs */ = []
+
+      for (const g of [f, d])
+        for (const x of g) x.children = x.children ? x.children() : []
+
+      const routes = [...f, ...d]
+
+      export { f as files, d as dirs, routes }
+    `,
+    tree: `
+      import { files as f, dirs as d } from '/out/routes'
+
+      const tree = {
+        path: "",
+        isRoot: true,
+        children: []
+      }
+
+      export default tree
+    `,
+    extras: `
+      const extras = {}
+
+      export default extras
+    `,
+  },
+])
