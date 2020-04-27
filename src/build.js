@@ -60,7 +60,7 @@ export default (options = {}) => {
 
   const logBuildSuccess = args => {
     if (!args.length) {
-      log.info('Nothing changes')
+      log.info('Nothing changed')
       return
     }
     const targetsDisplayNames = args.flat().join(', ')
