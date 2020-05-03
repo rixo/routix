@@ -147,6 +147,19 @@ export const parseOptions = ({
    * @type {function} Custom file writer: `async (name, contents) => {}`
    */
   writeFile,
+
+  /**
+   * @type {function} Custom sorter for files.
+   */
+  sortFiles = null,
+  /**
+   * @type {function} Custom sorter for dirs.
+   */
+  sortDirs = null,
+  /**
+   * @type {function} Custom sorter for tree children.
+   */
+  sortChildren = null,
 } = {}) => {
   const options = {
     id,
@@ -183,6 +196,9 @@ export const parseOptions = ({
     writeFile,
     buildDebounce,
     log,
+    sortFiles,
+    sortDirs,
+    sortChildren,
   }
 
   if (parser) {
