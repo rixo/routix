@@ -43,6 +43,7 @@ export default {
       dir: 'src/pages',
       extensions: ['.svelte', '.svx'],
       write: { routes: true, tree: true },
+      merged: false,
       leadingSlash: true,
       parse: async file => {
         // . => /
@@ -108,7 +109,7 @@ export default {
 
     // In dev mode, call `npm run start:dev` once
     // the bundle has been generated
-    dev && !nollup && serve(),
+    // dev && !nollup && serve(),
 
     // Watch the `public` directory and refresh the
     // browser on changes when not in production
@@ -144,22 +145,22 @@ export default {
   },
 }
 
-function serve() {
-  let started = false
-  return {
-    name: 'svelte/template:serve',
-    writeBundle() {
-      if (!started) {
-        started = true
-        const flags = ['run', 'start', '--', '--dev']
-        if (spa) {
-          flags.push('--single')
-        }
-        require('child_process').spawn('npm', flags, {
-          stdio: ['ignore', 'inherit', 'inherit'],
-          shell: true,
-        })
-      }
-    },
-  }
-}
+// function serve() {
+//   let started = false
+//   return {
+//     name: 'svelte/template:serve',
+//     writeBundle() {
+//       if (!started) {
+//         started = true
+//         const flags = ['run', 'start', '--', '--dev']
+//         if (spa) {
+//           flags.push('--single')
+//         }
+//         require('child_process').spawn('npm', flags, {
+//           stdio: ['ignore', 'inherit', 'inherit'],
+//           shell: true,
+//         })
+//       }
+//     },
+//   }
+// }

@@ -1,6 +1,6 @@
 <script>
   import { onDestroy } from 'svelte'
-  import routes from 'routix/routes'
+  import { routes } from 'routix/routes'
   import tree from 'routix/tree'
   import navaid from 'navaid'
   import Menu from './Menu.svelte'
