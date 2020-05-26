@@ -11,15 +11,8 @@
   "bugs": {
     "url": "https://github.com/rixo/routix/issues"
   },
-  "files": [
-    "routix.js",
-    "rollup.js",
-    "dist"
-  ],
+  "files": ["routix.js", "rollup.js", "dist"],
   "main": "routix.js",
-  "bin": {
-    "routix": "./cli.js"
-  },
   "devDependencies": {
     "@rixo/eslint-config-svelte": "^0.8.1",
     "@rollup/plugin-node-resolve": "^7.1.1",
