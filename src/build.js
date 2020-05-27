@@ -328,15 +328,17 @@ export default (options = {}) => {
     await _onIdle()
 
     if (errors.length > 0) {
-      throw errors[0]
-      // if (errors.length === 1) {
-      //   throw errors[0]
-      // }
-      // const err = new Error('')
-      // err.name = 'RoutixBuildError'
-      // err.errors = errors
-      // errors = []
-      // throw err
+      // throw errors[0]
+      if (errors.length === 1) {
+        throw errors[0]
+      }
+      const err = new Error(
+        `Build errors (${errors.length})\n1. ${errors[0].stack}`
+      )
+      err.name = 'RoutixBuildError'
+      err.errors = errors
+      errors = []
+      throw err
     }
   }
 

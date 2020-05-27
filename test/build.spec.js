@@ -58,7 +58,7 @@ test('basic', macro, {}, [
   },
 ])
 
-test.skip(
+test(
   'build errors',
   macro,
   {
