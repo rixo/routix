@@ -33,7 +33,13 @@ export default (options = {}) => {
   const hasTree = writeTree || merged
   const hasExtras = !!writeExtras
 
-  const tree = hasTree && Tree(options, { parse })
+  const api = {
+    add: file => builders.forEach(x => x.add(file)),
+    update: (file, previous) => builders.forEach(x => x.update(file, previous)),
+    remove: file => builders.forEach(x => x.remove(file)),
+  }
+
+  const tree = hasTree && Tree(options, { parse, build: api })
   const routes = (hasRoutes || hasTree) && Routes(options)
   const extras = hasExtras && Extras(options)
 
@@ -249,7 +255,7 @@ export default (options = {}) => {
             invalidated.extras = true
           }
           invalidated.build = true
-          builders.forEach(x => x.add(file))
+          api.add(file)
         })
         .catch(pushError)
     )
@@ -276,7 +282,7 @@ export default (options = {}) => {
           if (file.rebuild === false) return false
 
           invalidated.build = true
-          builders.forEach(x => x.update(file, previous))
+          api.update(file, previous)
         })
         .catch(pushError)
     )
@@ -296,7 +302,7 @@ export default (options = {}) => {
       }
 
       invalidated.build = true
-      builders.forEach(x => x.remove(file))
+      api.remove(file)
 
       invalidate()
     } catch (err) {

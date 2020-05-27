@@ -52,12 +52,13 @@ const _tree = (format, rootPath, root) =>
     '}',
   ])
 
-export default (options, { parse }) => {
+export default (options, { parse, build }) => {
   const {
     leadingSlash,
     format = noop,
     cacheChildren = true,
     sortChildren = false,
+    resolveConflict,
   } = options
 
   const rootPath = leadingSlash ? '/' : ''
@@ -129,8 +130,18 @@ export default (options, { parse }) => {
     if (node[FILE]) {
       if (node[FILE].isRoot) {
         root[FILE] = Object.assign(file, root[FILE])
-      } else if (!replace && node[FILE].isFile) {
-        throw new Error(`File node conflics: ${file.path}`)
+      } else {
+        const newFile = { ...file }
+        const newExisting = { ...node[FILE] }
+        if (resolveConflict && resolveConflict(newFile, newExisting)) {
+          build.remove(node[FILE])
+          build.add(newExisting)
+          build.add(newFile)
+          return
+        }
+        if (!replace && node[FILE].isFile) {
+          throw new Error(`File node conflict: ${file.path}`)
+        }
       }
     }
     node[FILE] = file

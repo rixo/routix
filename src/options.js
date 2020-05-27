@@ -160,6 +160,11 @@ export const parseOptions = ({
    * @type {function} Custom sorter for tree children.
    */
   sortChildren = null,
+
+  /**
+   * @type {Function} Resolve conflicts between file node with same path.
+   */
+  resolveConflict,
 } = {}) => {
   const options = {
     id,
@@ -199,6 +204,7 @@ export const parseOptions = ({
     sortFiles,
     sortDirs,
     sortChildren,
+    resolveConflict,
   }
 
   if (parser) {

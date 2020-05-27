@@ -58,7 +58,7 @@ test('basic', macro, {}, [
   },
 ])
 
-test(
+test.skip(
   'build errors',
   macro,
   {
@@ -1220,3 +1220,135 @@ test('no target files', macro, { write: { extras: true } }, [
     `,
   },
 ])
+
+test(
+  'conflict resolution: change existing',
+  macro,
+  {
+    parse: x => {
+      if (x.isFile) {
+        x.path = 'foo/a'
+      }
+    },
+    resolveConflict(file, existing) {
+      existing.path = existing.path.replace('a', 'a1')
+      return true
+    },
+  },
+  [
+    build => {
+      build.add(['foo/a1.js', { isDirectory: nope }])
+      build.start()
+    },
+    build => {
+      build.add(['foo/a2.js', { isDirectory: nope }])
+    },
+    {
+      routes: `
+        const f /* files */ = [
+          { // f[0]
+            path: "foo/a",
+            import: () => import("/pages/foo/a2.js")
+          },
+          { // f[1]
+            path: "foo/a1",
+            import: () => import("/pages/foo/a1.js")
+          }
+        ]
+
+        const d /* dirs */ = [
+          { // d[0]
+            path: "foo",
+            children: () => [f[0], f[1]]
+          }
+        ]
+
+        for (const g of [f, d])
+          for (const x of g) x.children = x.children ? x.children() : []
+
+        const routes = [...f, ...d]
+
+        export { f as files, d as dirs, routes }
+      `,
+      tree: `
+        import { files as f, dirs as d } from '/out/routes'
+
+        const tree = {
+          path: "",
+          isRoot: true,
+          children: [
+            d[0]
+          ]
+        }
+
+        export default tree
+      `,
+    },
+  ]
+)
+
+test(
+  'conflict resolution: change new file',
+  macro,
+  {
+    parse: x => {
+      if (x.isFile) {
+        x.path = 'foo/a'
+      }
+    },
+    resolveConflict(file) {
+      file.path = file.path.replace('a', 'a2')
+      return true
+    },
+  },
+  [
+    build => {
+      build.add(['foo/a1.js', { isDirectory: nope }])
+      build.start()
+    },
+    build => {
+      build.add(['foo/a2.js', { isDirectory: nope }])
+    },
+    {
+      routes: `
+        const f /* files */ = [
+          { // f[0]
+            path: "foo/a",
+            import: () => import("/pages/foo/a1.js")
+          },
+          { // f[1]
+            path: "foo/a2",
+            import: () => import("/pages/foo/a2.js")
+          }
+        ]
+
+        const d /* dirs */ = [
+          { // d[0]
+            path: "foo",
+            children: () => [f[0], f[1]]
+          }
+        ]
+
+        for (const g of [f, d])
+          for (const x of g) x.children = x.children ? x.children() : []
+
+        const routes = [...f, ...d]
+
+        export { f as files, d as dirs, routes }
+      `,
+      tree: `
+        import { files as f, dirs as d } from '/out/routes'
+
+        const tree = {
+          path: "",
+          isRoot: true,
+          children: [
+            d[0]
+          ]
+        }
+
+        export default tree
+      `,
+    },
+  ]
+)
