@@ -28,7 +28,7 @@ export const buildMacro = builder => async (t, _options, ...steps) => {
     sortChildren: dumbSort,
 
     dir: '/pages',
-    extensions: ['.js'],
+    extensions: ['.js', '.jsx'],
     merged: false,
     write: {
       routes: '/out/routes',

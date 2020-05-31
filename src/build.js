@@ -34,9 +34,12 @@ export default (options = {}) => {
   const hasExtras = !!writeExtras
 
   const api = {
-    add: file => builders.forEach(x => x.add(file)),
-    update: (file, previous) => builders.forEach(x => x.update(file, previous)),
-    remove: file => builders.forEach(x => x.remove(file)),
+    // add: file => builders.forEach(x => x.add(file)),
+    add: (...args) => doAdd(...args),
+    // update: (file, previous) => builders.forEach(x => x.update(file, previous)),
+    update: (...args) => doUpdate(...args),
+    // remove: file => builders.forEach(x => x.remove(file)),
+    remove: (...args) => doRemove(...args),
   }
 
   const tree = hasTree && Tree(options, { parse, build: api })
@@ -234,14 +237,21 @@ export default (options = {}) => {
     startDeferred.resolve()
   }
 
-  // NOTE parse is async, but we need add/update to
+  // NOTE parse is async, but we need add/update to be sync
   const _parse = async (pathStats, previous) => {
-    const [path] = pathStats
     const file = await parse(pathStats, previous)
     // canceled
     if (file === false) return false
-    files[path] = file
     return file
+  }
+
+  const doAdd = file => {
+    files[file.relative] = file
+    if (extras && extras.add(file) !== false) {
+      invalidated.extras = true
+    }
+    invalidated.build = true
+    builders.forEach(x => x.add(file))
   }
 
   const add = pathStats => {
@@ -250,15 +260,29 @@ export default (options = {}) => {
     if (stats.isDirectory()) return
     invalidateUntil(
       _parse(pathStats)
-        .then(file => {
-          if (extras && extras.add(file) !== false) {
-            invalidated.extras = true
-          }
-          invalidated.build = true
-          api.add(file)
-        })
+        .then(doAdd)
         .catch(pushError)
     )
+  }
+
+  const doUpdate = (file, previous) => {
+    files[file.relative] = file
+
+    if (file === false) return false
+
+    if (
+      extras &&
+      file.rebuildExtras !== false &&
+      extras.update(file, previous) !== false
+    ) {
+      invalidated.extras = true
+    }
+
+    if (file.rebuild === false) return false
+
+    invalidated.build = true
+
+    builders.forEach(x => x.update(file, previous))
   }
 
   const update = pathStats => {
@@ -268,24 +292,17 @@ export default (options = {}) => {
     const previous = files[path]
     invalidateUntil(
       _parse(pathStats, previous)
-        .then(file => {
-          if (file === false) return false
-
-          if (
-            extras &&
-            file.rebuildExtras !== false &&
-            extras.update(file, previous) !== false
-          ) {
-            invalidated.extras = true
-          }
-
-          if (file.rebuild === false) return false
-
-          invalidated.build = true
-          api.update(file, previous)
-        })
+        .then(file => doUpdate(file, previous))
         .catch(pushError)
     )
+  }
+
+  const doRemove = file => {
+    delete files[file.relative]
+    if (extras && extras.remove(file) !== false) invalidated.extras = true
+    invalidated.build = true
+    builders.forEach(x => x.remove(file))
+    invalidate()
   }
 
   const remove = ([path, stats]) => {

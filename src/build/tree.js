@@ -116,8 +116,10 @@ export default (options, { parse, build }) => {
 
   const split = leadingSlash ? x => x.slice(1).split('/') : x => x.split('/')
 
+  const splitPath = file => split(file.path)
+
   const invalidate = file => {
-    const steps = split(file.path)
+    const steps = splitPath(file)
     const nodes = getNodes(root, steps)
     for (const node of nodes) {
       if (node[FILE]) delete node[FILE].children
@@ -125,21 +127,24 @@ export default (options, { parse, build }) => {
   }
 
   const put = (file, replace) => {
-    const steps = split(file.path)
+    const steps = splitPath(file)
     const node = getNode(root, steps)
     if (node[FILE]) {
       if (node[FILE].isRoot) {
         root[FILE] = Object.assign(file, root[FILE])
       } else {
-        const newFile = { ...file }
-        const newExisting = { ...node[FILE] }
-        if (resolveConflict && resolveConflict(newFile, newExisting)) {
-          build.remove(node[FILE])
-          build.add(newExisting)
-          build.add(newFile)
-          return
-        }
         if (!replace && node[FILE].isFile) {
+          if (!file.isFile) return
+          const existing = node[FILE]
+          const newFile = { ...file }
+          const newExisting = { ...existing }
+          if (resolveConflict && resolveConflict(newFile, newExisting)) {
+            build.remove(existing)
+            build.remove(file) // ensure other builders don't keep a stale copy
+            build.add(newExisting)
+            build.add(newFile)
+            return
+          }
           throw new Error(`File node conflict: ${file.path}`)
         }
       }
@@ -162,7 +167,7 @@ export default (options, { parse, build }) => {
 
   const remove = file => {
     if (cacheChildren) invalidate(file)
-    const steps = split(file.path)
+    const steps = splitPath(file)
     const nodes = getNodes(root, steps)
     const target = nodes[nodes.length - 1]
     delete target[FILE]

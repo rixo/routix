@@ -1226,12 +1226,10 @@ test(
   macro,
   {
     parse: x => {
-      if (x.isFile) {
-        x.path = 'foo/a'
-      }
+      if (x.isFile) x.path = 'foo/a'
     },
     resolveConflict(file, existing) {
-      existing.path = existing.path.replace('a', 'a1')
+      existing.path = existing.path.replace(/a$/, 'a1')
       return true
     },
   },
@@ -1292,40 +1290,85 @@ test(
   macro,
   {
     parse: x => {
-      if (x.isFile) {
-        x.path = 'foo/a'
-      }
+      if (x.isFile) x.path = 'foo/a'
     },
     resolveConflict(file) {
-      file.path = file.path.replace('a', 'a2')
+      if (file.relative.includes('index')) {
+        file.path = 'foo/a/index'
+      }
       return true
     },
   },
   [
     build => {
-      build.add(['foo/a1.js', { isDirectory: nope }])
+      build.add(['foo/a.js', { isDirectory: nope }])
+      build.add(['foo/a.index.js', { isDirectory: nope }])
       build.start()
-    },
-    build => {
-      build.add(['foo/a2.js', { isDirectory: nope }])
     },
     {
       routes: `
         const f /* files */ = [
           { // f[0]
             path: "foo/a",
-            import: () => import("/pages/foo/a1.js")
+            import: () => import("/pages/foo/a.js"),
+            children: () => [f[1]]
           },
           { // f[1]
-            path: "foo/a2",
-            import: () => import("/pages/foo/a2.js")
+            path: "foo/a/index",
+            import: () => import("/pages/foo/a.index.js")
           }
         ]
 
         const d /* dirs */ = [
           { // d[0]
             path: "foo",
-            children: () => [f[0], f[1]]
+            children: () => [f[0]]
+          }
+        ]
+
+        for (const g of [f, d])
+          for (const x of g) x.children = x.children ? x.children() : []
+
+        const routes = [...f, ...d]
+
+        export { f as files, d as dirs, routes }
+      `,
+      tree: `
+        import { files as f, dirs as d } from '/out/routes'
+
+        const tree = {
+          path: "",
+          isRoot: true,
+          children: [
+            d[0]
+          ]
+        }
+
+        export default tree
+      `,
+    },
+    build => {
+      build.remove(['foo/a.index.js', { isDirectory: nope }])
+      build.add(['foo/a.index.jsx', { isDirectory: nope }])
+    },
+    {
+      routes: `
+        const f /* files */ = [
+          { // f[0]
+            path: "foo/a",
+            import: () => import("/pages/foo/a.js"),
+            children: () => [f[1]]
+          },
+          { // f[1]
+            path: "foo/a/index",
+            import: () => import("/pages/foo/a.index.jsx")
+          }
+        ]
+
+        const d /* dirs */ = [
+          { // d[0]
+            path: "foo",
+            children: () => [f[0]]
           }
         ]
 
