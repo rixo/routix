@@ -1395,3 +1395,113 @@ test(
     },
   ]
 )
+
+test(
+  'conflict resolution: update resolved',
+  macro,
+  {
+    parse: x => {
+      if (x.isFile) x.path = 'foo/a'
+    },
+    resolveConflict(file) {
+      if (file.relative.includes('index')) {
+        file.path = 'foo/a/index'
+      }
+      return true
+    },
+  },
+  [
+    build => {
+      build.add(['foo/a.js', { isDirectory: nope }])
+      build.add(['foo/a.index.js', { isDirectory: nope }])
+      build.start()
+    },
+    {
+      routes: `
+        const f /* files */ = [
+          { // f[0]
+            path: "foo/a",
+            import: () => import("/pages/foo/a.js"),
+            children: () => [f[1]]
+          },
+          { // f[1]
+            path: "foo/a/index",
+            import: () => import("/pages/foo/a.index.js")
+          }
+        ]
+
+        const d /* dirs */ = [
+          { // d[0]
+            path: "foo",
+            children: () => [f[0]]
+          }
+        ]
+
+        for (const g of [f, d])
+          for (const x of g) x.children = x.children ? x.children() : []
+
+        const routes = [...f, ...d]
+
+        export { f as files, d as dirs, routes }
+      `,
+      tree: `
+        import { files as f, dirs as d } from '/out/routes'
+
+        const tree = {
+          path: "",
+          isRoot: true,
+          children: [
+            d[0]
+          ]
+        }
+
+        export default tree
+      `,
+    },
+    build => {
+      build.update(['foo/a.index.js', { isDirectory: nope }])
+    },
+    {
+      routes: `
+        const f /* files */ = [
+          { // f[0]
+            path: "foo/a",
+            import: () => import("/pages/foo/a.js"),
+            children: () => [f[1]]
+          },
+          { // f[1]
+            path: "foo/a/index",
+            import: () => import("/pages/foo/a.index.js")
+          }
+        ]
+
+        const d /* dirs */ = [
+          { // d[0]
+            path: "foo",
+            children: () => [f[0]]
+          }
+        ]
+
+        for (const g of [f, d])
+          for (const x of g) x.children = x.children ? x.children() : []
+
+        const routes = [...f, ...d]
+
+        export { f as files, d as dirs, routes }
+      `,
+      tree: `
+        import { files as f, dirs as d } from '/out/routes'
+
+        const tree = {
+          path: "",
+          isRoot: true,
+          children: [
+            d[0]
+          ]
+        }
+
+        export default tree
+      `,
+    },
+  ]
+)

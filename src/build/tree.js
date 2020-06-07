@@ -126,6 +126,22 @@ export default (options, { parse, build }) => {
     }
   }
 
+  const isConflict = (file, existing, replace) => {
+    if (!existing) return false
+    if (!replace) return true
+    // NOTE if it's not the same file, then it's a conflict, even with replace
+    //
+    // With:
+    // - foo.js       => path: /foo
+    // - foo.index.js => path: /foo
+    //
+    // When I edit foo.index.js, I will have update with replace at /foo, but
+    // really it is a conflict because in a full build foo.index.js would have
+    // met foo.js. So it needs resolution.
+    //
+    return file.absolute !== existing.absolute
+  }
+
   const put = (file, replace) => {
     const steps = splitPath(file)
     const node = getNode(root, steps)
@@ -133,7 +149,8 @@ export default (options, { parse, build }) => {
       if (node[FILE].isRoot) {
         root[FILE] = Object.assign(file, root[FILE])
       } else {
-        if (!replace && node[FILE].isFile) {
+        if (isConflict(file, node[FILE], replace)) {
+          // if (!replace && node[FILE].isFile) {
           if (!file.isFile) return
           const existing = node[FILE]
           const newFile = { ...file }
