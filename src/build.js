@@ -246,6 +246,7 @@ export default (options = {}) => {
 
   const doAdd = file => {
     files[file.relative] = file
+    if (file === false) return false
     if (extras && extras.add(file) !== false) {
       invalidated.extras = true
     }
