@@ -70,11 +70,12 @@ export default (options = {}) => {
     (started && timeout === null && !scheduled && !running && latches === 0)
 
   const logBuildSuccess = args => {
-    if (!args.length) {
+    const targets = args.flat().filter(Boolean)
+    if (!targets.length) {
       log.info('Nothing changed')
       return
     }
-    const targetsDisplayNames = args.flat().join(', ')
+    const targetsDisplayNames = targets.join(', ')
     const duration = now() - startTime
     startTime = null
     log.info(`Written: ${targetsDisplayNames} (${duration}ms)`)
@@ -153,9 +154,7 @@ export default (options = {}) => {
         scheduled = false
         const { build: rebuild, extras: rebuildExtras } = invalidated
         invalidated.build = invalidated.extras = false
-        return Promise.all(
-          [rebuild && build(), rebuildExtras && buildExtras()].filter(Boolean)
-        )
+        return Promise.all([rebuild && build(), rebuildExtras && buildExtras()])
       })
       .then(logBuildSuccess)
       .catch(err => {
