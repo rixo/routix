@@ -36,7 +36,10 @@ export default ({ log, dir, extensions, watch = false }, build) => {
       .then(pipe(() => watcher.paths, map(build.add)))
       .then(build.start))
 
-  const close = () => watcher.close()
+  const close = async () => {
+    await initPromise
+    watcher.close()
+  }
 
   return { init, close, isWatchedFile }
 }
