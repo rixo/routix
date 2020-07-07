@@ -3,7 +3,7 @@ import builder from '@/build'
 import { pipe } from '@/util'
 import { parseOptions } from '@/options'
 
-let read
+let globalRead
 
 const noWriteWarning =
   'Both routes and tree generation are disabled, routix will do nothing'
@@ -52,14 +52,14 @@ const noWriteWarning =
 const createPlugin = options => {
   const { watchDelay, write, watch, log } = options
 
-  if (read) {
+  if (globalRead) {
     log.info('[routix] Closing previous watchers')
-    read.close()
+    globalRead.close()
   }
 
   const build = builder(options)
 
-  read = reader(
+  const read = reader(
     {
       ...options,
       // NOTE CheapWatch bails out if watch is not a bool
@@ -67,6 +67,11 @@ const createPlugin = options => {
     },
     build
   )
+
+  // don't share instance when running in test
+  if (process.env.NODE_ENV !== 'test') {
+    globalRead = read
+  }
 
   const readyPromise = read.init()
 
