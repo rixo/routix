@@ -36,6 +36,11 @@ export const parseOptions = ({
   extensions = [],
 
   /**
+   * @type {function}
+   */
+  ignore = path => /(?:^|\/)(?:node_modules|\.git)\//.test(path),
+
+  /**
    * @type {bool | { routes: bool|string, tree: bool|string }}
    *
    *     write: true|false
@@ -171,6 +176,7 @@ export const parseOptions = ({
     watchDelay,
     dir: dir && path.resolve(dir),
     extensions: parseExtensions(extensions),
+    ignore,
     watch,
     leadingSlash,
     importDefault,

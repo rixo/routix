@@ -2,10 +2,11 @@ import CheapWatch from 'cheap-watch'
 
 import { map } from '@/util/fp'
 
-export default ({ log, dir, extensions, watch = false }, build) => {
+export default ({ log, dir, extensions, watch = false, ignore }, build) => {
   const isWatchedFile = path => extensions.some(x => path.endsWith(x))
 
-  const filter = ({ path, stats }) => stats.isDirectory() || isWatchedFile(path)
+  const filter = ({ path, stats }) =>
+    (stats.isDirectory() || isWatchedFile(path)) && !(ignore && ignore(path))
 
   const watcher = new CheapWatch({ dir, watch, filter })
 
