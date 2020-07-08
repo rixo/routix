@@ -13,12 +13,16 @@ export const _log = (...prefix) => x => {
   return x
 }
 
-export const map = mapper => x => {
-  if (x.map) x.map(mapper)
-  const result = []
-  let i = 0
-  for (const item of x) {
-    result.push(mapper(item, i++, x))
+export const map = (mapper, o) => {
+  const fn = x => {
+    if (x.map) return x.map(mapper)
+    const result = []
+    let i = 0
+    for (const item of x) {
+      result.push(mapper(item, i++, x))
+    }
+    return result
   }
-  return result
+  if (o) return fn(o)
+  return o
 }

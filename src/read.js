@@ -1,6 +1,6 @@
 import CheapWatch from 'cheap-watch'
 
-import { pipe, map } from '@/util/fp'
+import { map } from '@/util/fp'
 
 export default ({ log, dir, extensions, watch = false }, build) => {
   const isWatchedFile = path => extensions.some(x => path.endsWith(x))
@@ -33,7 +33,7 @@ export default ({ log, dir, extensions, watch = false }, build) => {
     initPromise ||
     (initPromise = watcher
       .init()
-      .then(pipe(() => watcher.paths, map(build.add)))
+      .then(() => map(build.add, watcher.paths))
       .then(build.start))
 
   const close = async () => {
