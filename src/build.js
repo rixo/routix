@@ -371,7 +371,7 @@ export default (options = {}) => {
   const onChange = () => new Promise(resolve => changeListeners.push(resolve))
 
   // NOTE for some reason, CheapWatch seems to give posix path on Windows
-  const get = filename => files[path.relative(dir, filename)]
+  const get = filename => files[posixify(path.relative(dir, filename))]
 
   return { start, add, update, remove, onChange, onIdle, get }
 }
