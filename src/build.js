@@ -13,6 +13,8 @@ const resolved = Promise.resolve()
 
 const wait = delay => new Promise(resolve => setTimeout(resolve, delay))
 
+const posixify = x => x.replace(/\\/g, '/')
+
 export default (options = {}) => {
   const {
     dir,
@@ -368,6 +370,7 @@ export default (options = {}) => {
 
   const onChange = () => new Promise(resolve => changeListeners.push(resolve))
 
+  // NOTE for some reason, CheapWatch seems to give posix path on Windows
   const get = filename => files[path.relative(dir, filename)]
 
   return { start, add, update, remove, onChange, onIdle, get }
