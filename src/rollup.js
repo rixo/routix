@@ -1,9 +1,4 @@
-import reader from '@/read'
-import builder from '@/build'
-import { pipe } from '@/util'
-import { parseOptions } from '@/options'
-
-let globalRead
+import resolveRoutix from '@/routix'
 
 const noWriteWarning =
   'Both routes and tree generation are disabled, routix will do nothing'
@@ -49,42 +44,19 @@ const noWriteWarning =
  * 20ms seems to work on my machine
  */
 
-const createPlugin = options => {
-  const { watchDelay, write, watch, log } = options
+export default function rollupPluginRoutix(arg) {
+  const {
+    start,
+    isWatchedFile,
+    onIdle,
+    isWriteTarget,
+    options: { watchDelay, write },
+  } = resolveRoutix(arg)
 
-  if (globalRead) {
-    log.info('[routix] Closing previous watchers')
-    globalRead.close()
-  }
-
-  const build = builder(options)
-
-  const read = reader(
-    {
-      ...options,
-      // NOTE CheapWatch bails out if watch is not a bool
-      watch: watch != null ? watch : !!process.env.ROLLUP_WATCH,
-    },
-    build
-  )
-
-  // don't share instance when running in test
-  if (process.env.NODE_ENV !== 'test') {
-    globalRead = read
-  }
-
-  const readyPromise = read.init()
-
-  const writeTargets = Object.values(write).filter(Boolean)
-
-  const isWriteTarget = id => writeTargets.some(x => x === id)
+  const readyPromise = start()
 
   return {
     name: 'routix',
-
-    $$: {
-      get: (...args) => build.get(...args),
-    },
 
     // prevent build from starting until Routix has finished generating
     // routes.js (or Rollup would do a useless build with stalled routes.js)
@@ -98,8 +70,8 @@ const createPlugin = options => {
     async load(id) {
       // NOTE onIdle rethrows (and flushes) build / parse errors
       try {
-        if (isWriteTarget(id) || read.isWatchedFile(id)) {
-          await build.onIdle(watchDelay)
+        if (isWriteTarget(id) || isWatchedFile(id)) {
+          await onIdle(watchDelay)
         }
       } catch (err) {
         if (err.errors) err.errors.forEach(e => this.error(e))
@@ -122,5 +94,3 @@ const createPlugin = options => {
     },
   }
 }
-
-export default pipe(parseOptions, createPlugin)

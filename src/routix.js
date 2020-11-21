@@ -1,9 +1,14 @@
 import reader from '@/read'
 import builder from '@/build'
-import { pipe } from '@/util'
 import { parseOptions } from '@/options'
 
-const createRoutix = options => {
+const IS_ROUTIX = Symbol('IS_ROUTIX')
+
+const createRoutix = arg => {
+  if (arg[IS_ROUTIX]) return arg
+
+  const options = parseOptions(arg)
+
   const { log, write, start } = options
 
   const build = builder(options)
@@ -14,7 +19,7 @@ const createRoutix = options => {
 
   const isWriteTarget = id => writeTargets.some(x => x === id)
 
-  const { onIdle } = build
+  const { onIdle, get } = build
   const { init, isWatchedFile, close } = read
 
   if (start) {
@@ -24,12 +29,15 @@ const createRoutix = options => {
   }
 
   return {
+    [IS_ROUTIX]: true,
+    options,
     start: init,
     onIdle,
+    get,
     isWriteTarget,
     isWatchedFile,
     close,
   }
 }
 
-export default pipe(parseOptions, createRoutix)
+export default createRoutix
