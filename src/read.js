@@ -2,40 +2,47 @@ import CheapWatch from 'cheap-watch'
 
 import { map } from '@/util/fp'
 
-export default ({ log, dir, extensions, watch = false, ignore }, build) => {
+export default (
+  { log, dir, extensions, watch: _watch = false, ignore },
+  build
+) => {
   const isWatchedFile = path => extensions.some(x => path.endsWith(x))
 
   const filter = ({ path, stats }) =>
     (stats.isDirectory() || isWatchedFile(path)) && !(ignore && ignore(path))
 
-  const watcher = new CheapWatch({ dir, watch, filter })
+  let watcher
 
-  log.info(
-    `${watch ? 'Watching' : 'Reading'} ${dir}/**/*.(${extensions
-      .map(x => x.slice(1))
-      .join('|')})`
-  )
+  const start = ({ watch = _watch } = {}) => {
+    watcher = new CheapWatch({ dir, watch, filter })
 
-  if (watch) {
-    watcher.on('+', ({ path, stats, isNew }) => {
-      if (isNew) {
-        build.add([path, stats])
-      } else {
-        build.update([path, stats])
-      }
-    })
+    log.info(
+      `${watch ? 'Watching' : 'Reading'} ${dir}/**/*.(${extensions
+        .map(x => x.slice(1))
+        .join('|')})`
+    )
 
-    watcher.on('-', ({ path, stats }) => build.remove([path, stats]))
+    if (watch) {
+      watcher.on('+', ({ path, stats, isNew }) => {
+        if (isNew) {
+          build.add([path, stats])
+        } else {
+          build.update([path, stats])
+        }
+      })
+
+      watcher.on('-', ({ path, stats }) => build.remove([path, stats]))
+    }
+
+    return watcher
+      .init()
+      .then(() => map(build.add, watcher.paths))
+      .then(build.start)
   }
 
   let initPromise
 
-  const init = () =>
-    initPromise ||
-    (initPromise = watcher
-      .init()
-      .then(() => map(build.add, watcher.paths))
-      .then(build.start))
+  const init = (...args) => initPromise || (initPromise = start(...args))
 
   const close = async () => {
     await initPromise
