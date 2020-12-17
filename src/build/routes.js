@@ -20,7 +20,7 @@ const _children = children =>
 
 const _file = (
   props,
-  { id: withId, importDefault, importProp },
+  { id: withId, importDefault, importProp, resolve },
   { i, id, absolute, path, children }
 ) =>
   indent(1, '', [
@@ -28,7 +28,7 @@ const _file = (
     indent(2, ',', [
       withId && `id: ${_(id)}`,
       `path: ${_(path)}`,
-      `${importProp}: () => import(${_(absolute)})${
+      `${importProp}: () => import(${_(resolve(absolute))})${
         importDefault ? '.then(dft)' : ''
       }`,
       ..._props(props),
@@ -49,7 +49,11 @@ const _dir = (props, { id: withId }, { i, id, path, children }) =>
     '}',
   ])
 
-const _generate = ({ id, format, importDefault, importProp }, files, dirs) =>
+const _generate = (
+  { id, format, importDefault, importProp, resolve },
+  files,
+  dirs
+) =>
   indent(0, '\n', [
     importDefault && `const dft = m => m.default`,
 
@@ -58,7 +62,11 @@ const _generate = ({ id, format, importDefault, importProp }, files, dirs) =>
       indent(
         1,
         ','
-      )(files.map(x => _file(format(x), { id, importDefault, importProp }, x))),
+      )(
+        files.map(x =>
+          _file(format(x), { id, importDefault, importProp, resolve }, x)
+        )
+      ),
       ']',
     ]),
 
@@ -87,6 +95,7 @@ export default ({
   keepEmpty,
   importDefault = false,
   importProp = 'import',
+  resolve,
   sortFiles,
   sortDirs,
 }) => {
@@ -117,7 +126,11 @@ export default ({
     files.forEach(addIndex)
     if (dirs) dirs.forEach(addIndex)
 
-    return _generate({ format, importDefault, importProp }, files, dirs)
+    return _generate(
+      { format, importDefault, importProp, resolve },
+      files,
+      dirs
+    )
   }
 
   return {

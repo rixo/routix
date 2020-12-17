@@ -102,6 +102,11 @@ export const parseOptions = ({
   importProp = 'import',
 
   /**
+   * @type {function} Resolve an import path in routes.js
+   */
+  resolve = identity,
+
+  /**
    * Files:
    *
    *     ({ isFile: true, absolute, relative, path, extension }) => item | undefined
@@ -181,6 +186,7 @@ export const parseOptions = ({
     leadingSlash,
     importDefault,
     importProp,
+    resolve,
     parse,
     format,
     merged,
