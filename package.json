@@ -1,6 +1,6 @@
 {
   "name": "routix",
-  "version": "0.0.3-5",
+  "version": "0.1.0-0",
   "author": "rixo <rixo@rixo.fr>",
   "license": "ISC",
   "repository": {
@@ -11,7 +11,13 @@
   "bugs": {
     "url": "https://github.com/rixo/routix/issues"
   },
-  "files": ["routix.js*", "rollup.js*", "esm.js", "src", "dist"],
+  "files": [
+    "routix.js*",
+    "rollup.js*",
+    "esm.js",
+    "src",
+    "dist"
+  ],
   "main": "routix.js",
   "module": "esm.js",
   "devDependencies": {
