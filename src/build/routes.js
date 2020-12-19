@@ -28,9 +28,9 @@ const _file = (
     indent(2, ',', [
       withId && `id: ${_(id)}`,
       `path: ${_(path)}`,
-      `${importProp}: () => import(${_(resolve(absolute))})${
-        importDefault ? '.then(dft)' : ''
-      }`,
+      `${importProp}: () => import(${_(
+        resolve ? resolve(absolute) : absolute
+      )})${importDefault ? '.then(dft)' : ''}`,
       ..._props(props),
       children && children.length > 0 && _children(children),
     ]),
