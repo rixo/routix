@@ -16,14 +16,17 @@
     "rollup.js*",
     "esm.js",
     "src",
+    "src/node_modules/*",
     "dist"
   ],
   "main": "routix.js",
   "module": "esm.js",
+  "dependencies": {
+    "cheap-watch": "^1.0.3"
+  },
   "devDependencies": {
     "@rixo/eslint-config-svelte": "^0.8.1",
     "@rollup/plugin-node-resolve": "^7.1.1",
-    "cheap-watch": "^1.0.3",
     "dedent": "^0.7.0",
     "esm": "^3.2.25",
     "memfs": "^3.1.2",
