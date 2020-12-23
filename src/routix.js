@@ -1,6 +1,6 @@
-import reader from '@/read'
-import builder from '@/build'
-import { parseOptions } from '@/options'
+import reader from './read.js'
+import builder from './build.js'
+import { parseOptions } from './options.js'
 
 const IS_ROUTIX = Symbol('IS_ROUTIX')
 

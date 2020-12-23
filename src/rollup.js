@@ -1,4 +1,4 @@
-import resolveRoutix from '@/routix'
+import resolveRoutix from './routix.js'
 
 const noWriteWarning =
   'Both routes and tree generation are disabled, routix will do nothing'

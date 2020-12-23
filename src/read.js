@@ -1,6 +1,6 @@
 import CheapWatch from 'cheap-watch'
 
-import { map } from '@/util/fp'
+import { map } from './util/fp.js'
 
 export default (
   { log, dir, extensions, watch: _watch = false, ignore },

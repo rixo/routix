@@ -1,5 +1,5 @@
-import { noop } from '@/util'
-import { indent, _ref, _props } from './util'
+import { noop } from '../util.js'
+import { indent, _ref, _props } from './util.js'
 
 const FILE = Symbol('routix.tree.FILE')
 

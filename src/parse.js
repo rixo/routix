@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { identity, stringHashCode } from '@/util'
+import { identity, stringHashCode } from './util.js'
 
 const parseItem = ({ dir, extensions }, arg) => {
   if (Array.isArray(arg)) {

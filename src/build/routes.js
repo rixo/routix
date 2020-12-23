@@ -1,7 +1,7 @@
-import { identity, noop } from '@/util'
-import { notEmpty } from '@/model'
+import { identity, noop } from '../util.js'
+import { notEmpty } from '../model.js'
 
-import { indent, _ref } from './util'
+import { indent, _ref } from './util.js'
 
 const _ = JSON.stringify
 

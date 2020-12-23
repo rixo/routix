@@ -1,6 +1,6 @@
 import * as path from 'path'
-import { identity } from '@/util'
-import findup from '@/util/findup'
+import { identity } from './util.js'
+import findup from './util/findup.js'
 
 // we need to find up because we're probably in /dist
 let _root
