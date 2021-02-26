@@ -81,13 +81,13 @@ export default (options = {}) => {
     startTime = null
     log.info(
       `Written: ${targets.map(() => '%s*')} (%sms)`,
-      ...targets,
+      ...targets.map(target => path.resolve(target)),
       duration
     )
   }
 
   const writeFile = (...args) =>
-    Promise.resolve(_writeFile(...args)).then(() => path.basename(args[0]))
+    Promise.resolve(_writeFile(...args)).then(() => args[0])
 
   const build = async () => {
     if (!routes && !tree) return
