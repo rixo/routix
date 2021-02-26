@@ -17,9 +17,10 @@ export default (
     watcher = new CheapWatch({ dir, watch, filter })
 
     log.info(
-      `${watch ? 'Watching' : 'Reading'} ${dir}/**/*.(${extensions
-        .map(x => x.slice(1))
-        .join('|')})`
+      '%s %s*/**/*.(%s)',
+      watch ? 'Watching' : 'Reading',
+      dir,
+      extensions.map(x => x.slice(1)).join('|')
     )
 
     if (watch) {

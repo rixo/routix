@@ -17,10 +17,12 @@ const parseExtensions = (extensions = []) => {
 const emptyObject = {}
 
 /* eslint-disable no-console */
+const wrapConsole = fn => (msg, ...args) =>
+  fn(msg.replace(/%s\*/g, '%s', ...msg))
 const defaultLogger = {
-  log: console.log.bind(console, '[routix]'),
-  info: console.info.bind(console, '[routix]'),
-  error: console.error.bind(console, '[routix]'),
+  log: wrapConsole(console.log).bind(console, '[routix]'),
+  info: wrapConsole(console.info).bind(console, '[routix]'),
+  error: wrapConsole(console.error).bind(console, '[routix]'),
 }
 /* eslint-enable no-console */
 

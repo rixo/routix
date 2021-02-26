@@ -77,10 +77,13 @@ export default (options = {}) => {
       log.info('Nothing changed')
       return
     }
-    const targetsDisplayNames = targets.join(', ')
     const duration = now() - startTime
     startTime = null
-    log.info(`Written: ${targetsDisplayNames} (${duration}ms)`)
+    log.info(
+      `Written: ${targets.map(() => '%s*')} (%sms)`,
+      ...targets,
+      duration
+    )
   }
 
   const writeFile = (...args) =>
