@@ -1,4 +1,4 @@
-import { _ } from './util'
+import { _ } from './util.js'
 
 const _extras = extras => 'const extras = ' + JSON.stringify(extras, false, 2)
 

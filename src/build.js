@@ -2,10 +2,10 @@ import * as fs from 'fs'
 import * as path from 'path'
 import parser from './parse.js'
 import { Deferred, noop } from './util.js'
-import Tree from './build/tree'
-import Routes from './build/routes'
-import Extras from './build/extras'
-import { indent } from './build/util'
+import Tree from './build/tree.js'
+import Routes from './build/routes.js'
+import Extras from './build/extras.js'
+import { indent } from './build/util.js'
 
 const now = Date.now
 
