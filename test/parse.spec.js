@@ -1,6 +1,6 @@
-import { test, describe } from '.'
+import { test, describe } from './index.js'
 
-import parser from '../src/parse'
+import parser from '../src/parse.js'
 
 describe('parse factory', () => {
   test('is a function', t => {

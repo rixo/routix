@@ -11,7 +11,10 @@
   "bugs": {
     "url": "https://github.com/rixo/routix/issues"
   },
-  "files": ["routix.js*", "rollup.js*", "index.js", "src", "dist"],
+  "files": [
+    "index.js",
+    "src"
+  ],
   "main": "index.js",
   "type": "module",
   "dependencies": {
@@ -19,20 +22,14 @@
   },
   "devDependencies": {
     "@rixo/eslint-config-svelte": "^0.8.1",
-    "@rollup/plugin-node-resolve": "^7.1.1",
     "dedent": "^0.7.0",
     "esm": "^3.2.25",
-    "memfs": "^3.1.2",
-    "rewiremock": "^3.13.9",
-    "rollup": "^2.6.0",
+    "fs-extra": "^9.1.0",
     "svelte": "^3.20.1",
-    "zoar": "^0.0.3",
+    "zoar": "^0.3.0",
     "zorax": "^0.0.8"
   },
   "scripts": {
-    "build": "rollup -c",
-    "prepublish": "npm run build",
-    "dev": "rollup -c -w",
     "test": "zoar"
   }
 }

@@ -1,7 +1,5 @@
-import { test, buildMacro } from '.'
-// import { _routes, _tree } from '.'
-
-import builder from '../src/build'
+import { test, buildMacro } from './index.js'
+import builder from '../src/build.js'
 
 const macro = buildMacro(builder)
 

@@ -1,5 +1,20 @@
+import * as fs from 'fs'
+import * as fse from 'fs-extra'
+import * as path from 'path'
+import * as crypto from 'crypto'
+import { fileURLToPath } from 'url'
+
 export { test, describe } from 'zorax'
 import dedent from 'dedent'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const tmp = path.resolve(__dirname, '../tmp')
+
+if (!fs.existsSync(tmp)) {
+  fs.mkdirSync(tmp)
+}
 
 /* eslint-disable */
 export const _routes = (_, files) => {
@@ -13,6 +28,22 @@ export const _tree = (_, files) => {
 }
 /* eslint-enable */
 
+const freeDir = async (prefix = 'f') => {
+  let watchdog = 100
+  while (true) {
+    if (!--watchdog) {
+      throw new Error('Failed to find a free fixture dir name')
+    }
+    const suffix = crypto
+      .randomBytes(6)
+      .readUIntLE(0, 6)
+      .toString(36)
+    const dir = path.resolve(tmp, prefix + suffix)
+    if (await fse.pathExists(dir)) continue
+    return dir
+  }
+}
+
 export const buildMacro = builder => async (t, _options, ...steps) => {
   const { write, ...options } =
     typeof _options === 'function' ? _options(t) : _options
@@ -21,24 +52,32 @@ export const buildMacro = builder => async (t, _options, ...steps) => {
 
   const dumbSort = ({ path: a }, { path: b }) => (a === b ? 0 : a < b ? -1 : 1)
 
+  const root = await freeDir()
+
   t._options = {
     // make tests deterministic
     sortFiles: dumbSort,
     sortDirs: dumbSort,
     sortChildren: dumbSort,
 
-    dir: '/pages',
+    dir: path.join(root, 'pages'),
     extensions: ['.js', '.jsx'],
     merged: false,
     write: {
-      routes: '/out/routes',
-      tree: '/out/tree',
+      routes: path.join(root, 'out/routes'),
+      tree: path.join(root, 'out/tree'),
       ...write,
       ...(write && write.extras === true && { extras: '/out/extras' }),
     },
     log: { info: () => {} },
     buildDebounce: 0,
-    writeFile: t.spy((name, contents) => {
+    writeFile: t.spy((file, contents) => {
+      const name = file.replace(root, '')
+      let last
+      do {
+        last = contents
+        contents = contents.replace(root, '')
+      } while (contents !== last)
       files[name] = contents
     }),
     ...options,
@@ -74,4 +113,6 @@ export const buildMacro = builder => async (t, _options, ...steps) => {
       }
     }
   }
+
+  await fse.remove(root)
 }

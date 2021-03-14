@@ -1,18 +1,11 @@
+import * as fs from 'fs'
 import * as path from 'path'
-import { Volume } from 'memfs'
-import rewiremock from 'rewiremock'
-import { test, buildMacro } from '.'
+
+import { test, buildMacro } from './index.js'
+import Routix from '../src/routix.js'
 
 const macro = buildMacro(options => {
-  const fs = new Volume()
-
-  fs.stat = fs.stat.bind(fs)
-  fs.readdir = fs.readdir.bind(fs)
-  fs.watch = fs.watch.bind(fs)
-
-  const { default: Routix } = rewiremock.proxy('../src/routix', { fs })
-
-  const routix = Routix({ watch: false, ...options, fs })
+  const routix = Routix({ watch: false, ...options })
 
   fs.mkdirSync(options.dir, { recursive: true })
 

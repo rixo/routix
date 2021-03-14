@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   // pattern(s) to find test files
   files: '**/*.spec.js',
 
