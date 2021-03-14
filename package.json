@@ -1,6 +1,6 @@
 {
   "name": "routix",
-  "version": "0.1.0-6",
+  "version": "0.1.0-7",
   "author": "rixo <rixo@rixo.fr>",
   "license": "ISC",
   "repository": {
@@ -11,10 +11,7 @@
   "bugs": {
     "url": "https://github.com/rixo/routix/issues"
   },
-  "files": [
-    "index.js",
-    "src"
-  ],
+  "files": ["index.js", "src"],
   "main": "index.js",
   "type": "module",
   "dependencies": {
